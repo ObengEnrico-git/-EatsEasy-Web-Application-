@@ -13,28 +13,31 @@ const BmiCalculator = () => {
 
     // Function to calculate BMI
     const calculateBMI = (e) => {
-        e.preventDefault(); // Prevent the default form submission
-        if (!weight || !height) {
-            alert('Please enter both weight and height'); // ensure there is user input for both values
+        // Makes sure both weight and height have been entered and are >= 0
+        e.preventDefault();
+        if (!weight || weight <= 0 || !height || height <= 0) {
+            alert('Please enter valid positive numbers for both weight and height');
             return;
         }
+        else {
+            const heightInMeters = parseFloat(height) / 100;  // converting cm to m
+            const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);  // BMI calculation = weight(kg)/height(m)^2
+            setBmi(bmiValue);
 
-        const heightInMeters = parseFloat(height) / 100;  // converting cm to m
-        const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);  // BMI calculation = weight(kg)/height(m)^2
-        setBmi(bmiValue);
-
-        let bmiStatus = '';
-        if (bmiValue < 18.5) {
-            bmiStatus = 'Underweight';
-        } else if (bmiValue < 24.9) {
-            bmiStatus = 'Normal weight';
-        } else if (bmiValue < 29.9) {
-            bmiStatus = 'Overweight';
-        } else {
-            bmiStatus = 'Obesity';
+            let bmiStatus = '';
+            if (bmiValue < 18.5) {
+                bmiStatus = 'Underweight';
+            } else if (bmiValue < 24.9) {
+                bmiStatus = 'Normal weight';
+            } else if (bmiValue < 29.9) {
+                bmiStatus = 'Overweight';
+            } else {
+                bmiStatus = 'Obesity';
+            }
+            setStatus(bmiStatus);
         }
-        setStatus(bmiStatus);
     };
+
 
     // Function to return BMI
     const displayBmiResult = () => {
