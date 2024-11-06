@@ -1,13 +1,18 @@
 // App.js
 import React from 'react';
-import BmiCalculator from './BmiCalculator';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import BmiCalculator from './pages/BmiCalculator';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <BmiCalculator />
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<BmiCalculator />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

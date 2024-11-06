@@ -1,0 +1,226 @@
+// BmiCalculator.js
+import React, { useState } from 'react';
+import "../styles/BmiCalculator.css";
+import Select from 'react-select';
+
+const BmiCalculator = () => {
+    const [weight, setWeight] = useState('');
+    const [gender, setGender] = useState('');
+    const [height, setHeight] = useState('');
+    const [bmi, setBmi] = useState(null);
+    const [status, setStatus] = useState('');
+    const [age, setAge] = useState('');
+    const [optionPicked, setOptionPicked] = useState("");
+    const [isInfoVisible, setIsInfoVisible] = useState(false); // New state for dropdown toggle
+    const [isCalculated, setIsCalculated] = useState(false); // New state to track calculation
+
+    const calculateBMI = (e) => {
+        e.preventDefault();
+        if (!weight || weight <= 0 || !height || height <= 0 || gender == null) {
+            alert('Please enter valid positive numbers for both weight and height or select a gender.');
+            return;
+        }
+        const heightInMeters = parseFloat(height) / 100;
+        const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);
+        setBmi(bmiValue);
+
+        let bmiStatus = '';
+        if (bmiValue < 18.5) {
+            bmiStatus = 'Underweight';
+        } else if (bmiValue < 24.9) {
+            bmiStatus = 'Normal weight';
+        } else if (bmiValue < 29.9) {
+            bmiStatus = 'Overweight';
+        } else {
+            bmiStatus = 'Obesity';
+        }
+        setStatus(bmiStatus);
+        setIsCalculated(true); // Update calculation status
+    };
+
+    const calculateCalorieCount = () => {
+        let BMR = 0;
+        if (gender === "Male") {
+            BMR = 10 * weight + 6.25 * height - 5 * age + 5;
+        } else if (gender === "Woman") {
+            BMR = 10 * weight + 6.25 * height - 5 * age - 161;
+        }
+
+        let activityMultiplier = 1.2;
+        switch (optionPicked.value) {
+            case "Sedentary: little or no exercise":
+                activityMultiplier = 1.2;
+                break;
+            case "Light: exercise 1-3 times a week":
+                activityMultiplier = 1.375;
+                break;
+            case "Moderate: exercise 4-5 times a week":
+                activityMultiplier = 1.55;
+                break;
+            case "Active: intense exercise 4-5 times a week":
+                activityMultiplier = 1.725;
+                break;
+            case "Very Active: intense exercise 6-7 times a week":
+                activityMultiplier = 1.9;
+                break;
+            default:
+                break;
+        }
+
+        const TDEE = BMR * activityMultiplier;
+
+        return (
+            <div className='result'>
+                <h3>Your BMR is: {BMR.toFixed(2)}</h3>
+                <h3>Your TDEE is (to maintain your current weight) is: {TDEE.toFixed(2)} calories/day</h3>
+                {displayRecommendation()}
+            </div>
+        );
+    };
+
+    const displayRecommendation = () => {
+        if (status === "Underweight") {
+            return <p>We recommend you increase your intake.</p>;
+        } else if (status === "Normal weight") {
+            return <p>We recommend maintaining your intake.</p>;
+        } else if (status === "Overweight" || status === "Obesity") {
+            return <p>We recommend reducing your intake.</p>;
+        }
+        return null;
+    };
+
+    const handleToggleInfo = () => {
+        setIsInfoVisible(!isInfoVisible);
+    };
+
+    const options = [
+        { value: "Basal Metabolic Rate (BMR)", label: "Basal Metabolic Rate (BMR)"},
+        { value: "Sedentary: little or no exercise", label: "Sedentary: little or no exercise"},
+        { value: "Light: exercise 1-3 times a week", label: "Light: exercise 1-3 times a week"},
+        { value: "Moderate: exercise 4-5 times a week", label: "Moderate: exercise 4-5 times a week" },
+        { value: "Active: daily exercise or intense exercise 3-4 times a week", label: "Active: intense exercise 4-5 times a week"},
+        { value: "Very Active: intense exercise 6-7 times a week", label: "Very Active: intense exercise 6-7 times a week"},
+    ];
+
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            borderRadius: "8px",
+            boxShadow: "none",
+            textAlign: "left",
+
+        }),
+        option: (provided, state) => ({ ...provided, color:"black", backgroundColor: state.isSelected ? "lightgrey" : "white",    
+        })
+    };
+
+    const resetForm = () => {
+        setWeight('');
+        setGender('');
+        setHeight('');
+        setBmi(null);
+        setStatus('');
+        setAge('');
+        setOptionPicked('');
+        setIsCalculated(false);
+    };
+
+    return (
+        <div className='page-container'>
+            <div className='info-container'>
+                <h2 onClick={handleToggleInfo} style={{ cursor: "pointer" }}>
+                    Your Details {isInfoVisible ? '▲' : '▼'}
+                </h2>
+                {isInfoVisible && (
+                    <div>
+                        <p><strong>BMI:</strong> {bmi}</p>
+                        <p><strong>Status:</strong> {status}</p>
+                        <p>{calculateCalorieCount()}</p>
+                    </div>
+                )}
+            </div>
+            <div className='container'>
+                <h1>EatsEasy</h1>
+                <form onSubmit={calculateBMI}>
+                    <div className='radio-option'>
+                        <label>
+                            Male
+                            <input
+                                type="radio"
+                                name="gender"
+                                value="Male"
+                                onChange={(e) => setGender(e.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Woman
+                            <input
+                                type="radio"
+                                name="gender"
+                                value="Woman"
+                                onChange={(e) => setGender(e.target.value)}
+                                required
+                            />
+                        </label>
+                    </div>
+                    <div className='input-group'>
+                        <label>
+                            Age
+                            <input
+                                type="number"
+                                value={age}
+                                onChange={(e) => setAge(e.target.value)}
+                                placeholder='Enter your age'
+                                required
+                            />
+                        </label>
+                    </div>
+                    <div className='input-group'>
+                        <label>
+                            Weight (kg):
+                            <input
+                                type="number"
+                                value={weight}
+                                onChange={(e) => setWeight(e.target.value)}
+                                placeholder='Enter your weight'
+                                required
+                            />
+                        </label>
+                    </div>
+                    <div className='input-group'>
+                        <label>
+                            Height (cm):
+                            <input
+                                type="number"
+                                value={height}
+                                onChange={(e) => setHeight(e.target.value)}
+                                placeholder='Enter your height'
+                                required
+                            />
+                        </label>
+                    </div>
+                    <div className='input-group'>
+                        Activity Level:
+                        <Select
+                            options={options}
+                            styles={customStyles}
+                            onChange={(option) => setOptionPicked(option)}
+                        />
+                    </div>
+                    {!isCalculated ? (
+                        <button type="submit">Calculate</button>
+                    ) : (
+                        <>
+                            <button onClick={() => {}} className="nav-button">Create Customized Recipes </button>
+                            <br></br>
+                            <button onClick={resetForm}>Reset</button>
+                        </>
+                    )}
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default BmiCalculator;
