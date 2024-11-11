@@ -11,15 +11,19 @@ const BmiCalculator = () => {
     const [status, setStatus] = useState('');
     const [age, setAge] = useState('');
     const [optionPicked, setOptionPicked] = useState("");
-    const [isInfoVisible, setIsInfoVisible] = useState(false); // New state for dropdown toggle
-    const [isCalculated, setIsCalculated] = useState(false); // New state to track calculation
+    const [isInfoVisible, setIsInfoVisible] = useState(false); 
+    const [isCalculated, setIsCalculated] = useState(false);
+    
 
     const calculateBMI = (e) => {
         e.preventDefault();
-        if (!weight || weight <= 0 || !height || height <= 0 || gender == null) {
-            alert('Please enter valid positive numbers for both weight and height or select a gender.');
+        
+
+        if (!weight || weight <= 0 || !height || height <= 0 || !gender || !age || age <= 0) {
+            alert('Please enter valid positive numbers for weight, age, height or select a gender.');
             return;
         }
+        
         const heightInMeters = parseFloat(height) / 100;
         const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);
         setBmi(bmiValue);
@@ -35,10 +39,12 @@ const BmiCalculator = () => {
             bmiStatus = 'Obesity';
         }
         setStatus(bmiStatus);
-        setIsCalculated(true); // Update calculation status
+        setIsCalculated(true);
     };
 
     const calculateCalorieCount = () => {
+        if (!isCalculated) return null;
+        
         let BMR = 0;
         if (gender === "Male") {
             BMR = 10 * weight + 6.25 * height - 5 * age + 5;
@@ -80,11 +86,11 @@ const BmiCalculator = () => {
 
     const displayRecommendation = () => {
         if (status === "Underweight") {
-            return <p>We recommend you increase your intake.</p>;
+            return <p>We recommend you to <b>increase</b> your intake.</p>;
         } else if (status === "Normal weight") {
-            return <p>We recommend maintaining your intake.</p>;
+            return <p>We recommend <b>maintaining</b> your current intake.</p>;
         } else if (status === "Overweight" || status === "Obesity") {
-            return <p>We recommend reducing your intake.</p>;
+            return <p>We recommend <b>reducing</b> your current intake.</p>;
         }
         return null;
     };
@@ -135,7 +141,7 @@ const BmiCalculator = () => {
                     <div>
                         <p><strong>BMI:</strong> {bmi}</p>
                         <p><strong>Status:</strong> {status}</p>
-                        <p>{calculateCalorieCount()}</p>
+                        {isCalculated && calculateCalorieCount()}
                     </div>
                 )}
             </div>
@@ -151,6 +157,7 @@ const BmiCalculator = () => {
                                 value="Male"
                                 onChange={(e) => setGender(e.target.value)}
                                 required
+                                disabled={isCalculated}
                             />
                         </label>
                         <label>
@@ -161,6 +168,7 @@ const BmiCalculator = () => {
                                 value="Woman"
                                 onChange={(e) => setGender(e.target.value)}
                                 required
+                                disabled={isCalculated}
                             />
                         </label>
                     </div>
@@ -173,6 +181,7 @@ const BmiCalculator = () => {
                                 onChange={(e) => setAge(e.target.value)}
                                 placeholder='Enter your age'
                                 required
+                                disabled={isCalculated}
                             />
                         </label>
                     </div>
@@ -185,6 +194,7 @@ const BmiCalculator = () => {
                                 onChange={(e) => setWeight(e.target.value)}
                                 placeholder='Enter your weight'
                                 required
+                                disabled={isCalculated}
                             />
                         </label>
                     </div>
@@ -197,6 +207,7 @@ const BmiCalculator = () => {
                                 onChange={(e) => setHeight(e.target.value)}
                                 placeholder='Enter your height'
                                 required
+                                disabled={isCalculated}
                             />
                         </label>
                     </div>
@@ -206,6 +217,7 @@ const BmiCalculator = () => {
                             options={options}
                             styles={customStyles}
                             onChange={(option) => setOptionPicked(option)}
+                            isDisabled={isCalculated}
                         />
                     </div>
                     {!isCalculated ? (
@@ -214,7 +226,7 @@ const BmiCalculator = () => {
                         <>
                             <button onClick={() => {}} className="nav-button">Create Customized Recipes </button>
                             <br></br>
-                            <button onClick={resetForm}>Reset</button>
+                            <button type="button" onClick={resetForm}>Reset</button>
                         </>
                     )}
                 </form>
