@@ -18,11 +18,32 @@ const BmiCalculator = () => {
     const calculateBMI = (e) => {
         e.preventDefault();
         
+        // check their weight, height, gender and age for edge cases 
 
         if (!weight || weight <= 0 || !height || height <= 0 || !gender || !age || age <= 0) {
             alert('Please enter valid positive numbers for weight, age, height or select a gender.');
             return;
         }
+
+        // check if they are above 18 
+
+        if (age < 18) {
+            alert("You must be above the age of 18 to calculate recipes");
+            return;
+        } else if (age > 80 ) {
+            // adjust this alert so it redirects them to the reciepe page with no calorie calculation
+            alert("Unfortunetly, our calculator won't accurately work for you.");
+            return;
+        }
+
+        // check if their weight or height is sensible 
+
+        if (weight <= 30 || height <= 120 || weight >= 250 || height >= 210) {
+            alert("Please enter a valid weight or height");
+            return;
+        }
+
+        // Enrico this is where the conversion happens
         
         const heightInMeters = parseFloat(height) / 100;
         const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);
