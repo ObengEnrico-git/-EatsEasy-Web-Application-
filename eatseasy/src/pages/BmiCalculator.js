@@ -37,6 +37,7 @@ const BmiCalculator = () => {
         }
 
         // check if their weight or height is sensible 
+        // I commented this out because of the new units measurements
 
         if (weight <= 30 || height <= 120 || weight >= 250 || height >= 210) {
             alert("Please enter a valid weight or height");
