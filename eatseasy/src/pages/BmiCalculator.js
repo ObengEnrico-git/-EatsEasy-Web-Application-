@@ -17,7 +17,6 @@ const BmiCalculator = () => {
     const [isCalculated, setIsCalculated] = useState(false);
 
     const convertFeetToCm = (feet) => feet * 30.48;
-    const convertInchesToCm = (inches) => inches * 2.54;
     const convertPoundsToKg = (pounds) => pounds * 0.453592;
 
     const calculateBMI = (e) => {
