@@ -260,7 +260,7 @@ const BmiCalculator = () => {
                                 disabled={isCalculated}
                             />
                             <Select
-                                options={[{ value: 'cm', label: 'cm' }, { value: 'feet', label: 'ft.in' }]}
+                                options={[{ value: 'cm', label: 'cm' }, { value: 'feet', label: 'feet & inches' }]}
                                 value={{ value: heightUnit, label: heightUnit }}
                                 onChange={(option) => setHeightUnit(option.value)}
                                 className='dropdown-container'
