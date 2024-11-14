@@ -5,15 +5,20 @@ import Select from 'react-select';
 
 const BmiCalculator = () => {
     const [weight, setWeight] = useState('');
+    const [weightUnit, setWeightUnit] = useState('kg');
     const [gender, setGender] = useState('');
     const [height, setHeight] = useState('');
+    const [heightUnit, setHeightUnit] = useState('cm');
     const [bmi, setBmi] = useState(null);
     const [status, setStatus] = useState('');
     const [age, setAge] = useState('');
     const [optionPicked, setOptionPicked] = useState("");
     const [isInfoVisible, setIsInfoVisible] = useState(false); 
     const [isCalculated, setIsCalculated] = useState(false);
-    
+
+    const convertFeetToCm = (feet) => feet * 30.48;
+    const convertInchesToCm = (inches) => inches * 2.54;
+    const convertPoundsToKg = (pounds) => pounds * 0.453592;
 
     const calculateBMI = (e) => {
         e.preventDefault();
@@ -37,17 +42,19 @@ const BmiCalculator = () => {
         }
 
         // check if their weight or height is sensible 
-        // I commented this out because of the new units measurements
 
-        if (weight <= 30 || height <= 120 || weight >= 250 || height >= 210) {
-            alert("Please enter a valid weight or height");
-            return;
-        }
+        // if (weight <= 30 || height <= 120 || weight >= 250 || height >= 210) {
+        //     alert("Please enter a valid weight or height");
+        //     return;
+        // }
 
         // Enrico this is where the conversion happens
+
+        let heightInCm = heightUnit === 'cm' ? parseFloat(height) : convertFeetToCm(parseFloat(height));
+        let weightInKg = weightUnit === 'kg' ? parseFloat(weight) : convertPoundsToKg(parseFloat(weight));
         
-        const heightInMeters = parseFloat(height) / 100;
-        const bmiValue = (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(2);
+        const heightInMeters = heightInCm / 100;
+        const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
         setBmi(bmiValue);
 
         let bmiStatus = '';
@@ -66,13 +73,16 @@ const BmiCalculator = () => {
 
     const calculateCalorieCount = () => {
         if (!isCalculated) return null;
-        
+
+        const heightInCm = heightUnit === 'cm' ? parseFloat(height) : convertFeetToCm(parseFloat(height));
+        const weightInKg = weightUnit === 'kg' ? parseFloat(weight) : convertPoundsToKg(parseFloat(weight));
+
         let BMR = 0;
-        if (gender === "Male") {
-            BMR = 10 * weight + 6.25 * height - 5 * age + 5;
-        } else if (gender === "Woman") {
-            BMR = 10 * weight + 6.25 * height - 5 * age - 161;
-        }
+    if (gender === "Male") {
+        BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
+    } else if (gender === "Woman") {
+        BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
+    }
 
         let activityMultiplier = 1.2;
         switch (optionPicked.value) {
@@ -136,16 +146,24 @@ const BmiCalculator = () => {
             borderRadius: "8px",
             boxShadow: "none",
             textAlign: "left",
-
+            minHeight: "45px",  
+            fontSize: "16px",   
         }),
-        option: (provided, state) => ({ ...provided, color:"black", backgroundColor: state.isSelected ? "lightgrey" : "white",    
+        option: (provided, state) => ({
+            ...provided,
+            color: "black",
+            backgroundColor: state.isSelected ? "lightgrey" : "white",
+            fontSize: "16px",   
+            padding: "10px",    
         })
     };
 
     const resetForm = () => {
         setWeight('');
+        setWeightUnit('kg');
         setGender('');
         setHeight('');
+        setHeightUnit('cm');
         setBmi(null);
         setStatus('');
         setAge('');
@@ -207,9 +225,10 @@ const BmiCalculator = () => {
                             />
                         </label>
                     </div>
+
                     <div className='input-group'>
-                        <label>
-                            Weight (kg):
+                        <label>Weight:</label>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
                             <input
                                 type="number"
                                 value={weight}
@@ -218,11 +237,20 @@ const BmiCalculator = () => {
                                 required
                                 disabled={isCalculated}
                             />
-                        </label>
+                            <Select
+                                options={[{ value: 'kg', label: 'kg' }, { value: 'lbs', label: 'lbs' }]}
+                                value={{ value: weightUnit, label: weightUnit }}
+                                onChange={(option) => setWeightUnit(option.value)}
+                                className='dropdown-container'
+                                isDisabled={isCalculated}
+                            />
+
+                        </div>
                     </div>
+
                     <div className='input-group'>
-                        <label>
-                            Height (cm):
+                        <label>Height:</label>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
                             <input
                                 type="number"
                                 value={height}
@@ -231,7 +259,14 @@ const BmiCalculator = () => {
                                 required
                                 disabled={isCalculated}
                             />
-                        </label>
+                            <Select
+                                options={[{ value: 'cm', label: 'cm' }, { value: 'feet', label: 'ft.in' }]}
+                                value={{ value: heightUnit, label: heightUnit }}
+                                onChange={(option) => setHeightUnit(option.value)}
+                                className='dropdown-container'
+                                isDisabled={isCalculated}
+                            />
+                        </div>
                     </div>
                     <div className='input-group'>
                         Activity Level:
@@ -256,5 +291,4 @@ const BmiCalculator = () => {
         </div>
     );
 };
-
 export default BmiCalculator;

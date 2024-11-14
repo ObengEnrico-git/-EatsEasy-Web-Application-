@@ -39,6 +39,13 @@ h1 {
 }
 
 .dropdown-container {
+    width: 250px; 
+    font-size: 20px; 
+    padding: 12px; 
+    height: 45px; 
+}
+
+.dropdown-container {
     width: 200px; 
     font-size: 18px;
     padding: 10px;
