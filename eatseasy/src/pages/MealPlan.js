@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import NavBar from './NavBar';
 import "../styles/MealPlan.css";
 
 const MealPlan = () => {
@@ -14,6 +15,8 @@ const MealPlan = () => {
     };
 
     return (
+        <div>
+            <NavBar />
         <div className='mealplan-container'>
             <h1>Recommended Meals</h1>
             {mealData && mealData.week ? (
@@ -67,6 +70,7 @@ const MealPlan = () => {
                 <button> Go back</button>
                 </>
             )}
+        </div>
         </div>
     );
 };

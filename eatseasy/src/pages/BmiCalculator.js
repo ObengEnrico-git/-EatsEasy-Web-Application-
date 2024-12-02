@@ -1,5 +1,6 @@
 // BmiCalculator.js
 import React, { useState } from 'react';
+import NavBar from './NavBar';
 import { useNavigate } from 'react-router-dom';
 import "../styles/BmiCalculator.css";
 import Select from 'react-select';
@@ -262,6 +263,8 @@ const BmiCalculator = () => {
     };
 
     return (
+        <div>
+            <NavBar />
         <div className='page-container'>
             <div className='info-container'>
                 <h2 onClick={handleToggleInfo} style={{ cursor: "pointer" }}>
@@ -398,6 +401,7 @@ const BmiCalculator = () => {
                     )}
                 </form>
             </div>
+        </div>
         </div>
     );
 };

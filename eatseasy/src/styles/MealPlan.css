@@ -13,7 +13,7 @@ html, body {
 .mealplan-container {
     padding: 40px 5%;
     max-width: 1200px; /* Limit the max width for a centered layout */
-    margin: 0 auto;
+    margin: 30px auto;
 }
 
 /* Day container */
