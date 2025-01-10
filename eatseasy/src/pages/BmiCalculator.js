@@ -1,7 +1,9 @@
 // BmiCalculator.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import "../styles/BmiCalculator.css";
 import Select from 'react-select';
+import axios from 'axios';
 
 const BmiCalculator = () => {
     const [weight, setWeight] = useState('');
@@ -17,6 +19,7 @@ const BmiCalculator = () => {
     const [optionPicked, setOptionPicked] = useState("");
     const [isInfoVisible, setIsInfoVisible] = useState(false); 
     const [isCalculated, setIsCalculated] = useState(false);
+    const navigate = useNavigate(); // React Router hook
 
     const convertFeetAndInchesToCm = (feet, inches) => feet * 30.48 + inches * 2.54;
     const convertPoundsToKg = (pounds) => pounds * 0.453592;
@@ -90,21 +93,26 @@ const BmiCalculator = () => {
         }
         setStatus(bmiStatus);
         setIsCalculated(true);
+        calculateCalorieCount();
     };
 
     const calculateCalorieCount = () => {
         if (!isCalculated) return null;
-
-        const heightInCm = heightUnit === 'cm' ? parseFloat(height) : convertFeetAndInchesToCm(parseFloat(heightFeet) || 0, parseFloat(heightInches) || 0);
-    const weightInKg = weightUnit === 'kg' ? parseFloat(weight) : convertPoundsToKg(parseFloat(weight));
-
-    let BMR = 0;
-    if (gender === "Male") {
-        BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
-    } else if (gender === "Woman") {
-        BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
-    }
-
+    
+        const heightInCm = heightUnit === 'cm' 
+            ? parseFloat(height) 
+            : convertFeetAndInchesToCm(parseFloat(heightFeet) || 0, parseFloat(heightInches) || 0);
+        const weightInKg = weightUnit === 'kg' 
+            ? parseFloat(weight) 
+            : convertPoundsToKg(parseFloat(weight));
+    
+        let BMR = 0;
+        if (gender === "Male") {
+            BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
+        } else if (gender === "Woman") {
+            BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
+        }
+    
         let activityMultiplier = 1.2;
         switch (optionPicked.value) {
             case "Sedentary: little or no exercise":
@@ -125,16 +133,77 @@ const BmiCalculator = () => {
             default:
                 break;
         }
-
+    
         const TDEE = BMR * activityMultiplier;
-
+    
+        // Fetch meal plan after calculating TDEE
+        // fetchMealPlan(TDEE);
+    
         return (
             <div className='result'>
                 <h3>Your BMR is: {BMR.toFixed(2)}</h3>
-                <h3>Your TDEE is (to maintain your current weight) is: {TDEE.toFixed(2)} calories/day</h3>
+                <h3>Your TDEE is (to maintain your current weight): {TDEE.toFixed(2)} calories/day</h3>
                 {displayRecommendation()}
             </div>
         );
+    };
+
+    const CalculateAndFetchMealPlan = () => {
+        if (!isCalculated) return null;
+    
+        const heightInCm = heightUnit === 'cm' 
+            ? parseFloat(height) 
+            : convertFeetAndInchesToCm(parseFloat(heightFeet) || 0, parseFloat(heightInches) || 0);
+        const weightInKg = weightUnit === 'kg' 
+            ? parseFloat(weight) 
+            : convertPoundsToKg(parseFloat(weight));
+    
+        let BMR = 0;
+        if (gender === "Male") {
+            BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
+        } else if (gender === "Woman") {
+            BMR = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
+        }
+    
+        let activityMultiplier = 1.2;
+        switch (optionPicked.value) {
+            case "Sedentary: little or no exercise":
+                activityMultiplier = 1.2;
+                break;
+            case "Light: exercise 1-3 times a week":
+                activityMultiplier = 1.375;
+                break;
+            case "Moderate: exercise 4-5 times a week":
+                activityMultiplier = 1.55;
+                break;
+            case "Active: intense exercise 4-5 times a week":
+                activityMultiplier = 1.725;
+                break;
+            case "Very Active: intense exercise 6-7 times a week":
+                activityMultiplier = 1.9;
+                break;
+            default:
+                break;
+        }
+    
+        const TDEE = BMR * activityMultiplier;
+
+        fetchMealPlan(TDEE);
+
+
+    }
+    
+    // Fetch meal plan function
+    const fetchMealPlan = async (TDEE) => {
+        try {
+            const response = await axios.get('http://localhost:8000/mealplan', {
+                params: { targetCalories: TDEE },
+            });
+            const mealData = response.data;
+            navigate('/mealplan', { state: { mealData } }); // Redirect with meal data
+        } catch (error) {
+            console.error('Error fetching meal plan:', error);
+        }
     };
 
     const displayRecommendation = () => {
@@ -322,7 +391,7 @@ const BmiCalculator = () => {
                         <button type="submit">Calculate</button>
                     ) : (
                         <>
-                            <button onClick={() => {}} className="nav-button">Create Customized Recipes </button>
+                            <button onClick={CalculateAndFetchMealPlan} className="nav-button">Create Customised Recipes</button>
                             <br></br>
                             <button type="button" onClick={resetForm}>Reset</button>
                         </>

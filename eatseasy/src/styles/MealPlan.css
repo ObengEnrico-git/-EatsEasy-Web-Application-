@@ -1,0 +1,123 @@
+/* Reset and base styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #a7c3a9;
+    color: #333;
+    min-height: 100%;
+    overflow-y: auto;
+}
+
+/* Main container for the meal plan */
+.mealplan-container {
+    padding: 40px 5%;
+    max-width: 1200px; /* Limit the max width for a centered layout */
+    margin: 0 auto;
+}
+
+/* Day container */
+.day-container {
+    margin-bottom: 40px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading for each day */
+.day-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #2f855a;
+}
+
+/* Icon/button for information */
+.info-button {
+    background: none;
+    border: none;
+    color: #75b193;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.info-button:hover {
+    color: #ddfaea;
+}
+
+/* Meal list as a grid */
+.meal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Meal card styling */
+.meal-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #fff;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.meal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Image inside meal card */
+.meal-card img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* Meal links */
+.meal-card a {
+    color: #007BFF;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.meal-card a:hover {
+    text-decoration: underline;
+}
+
+/* Nutritional information container */
+.nutrients-info {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nutrients-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.nutrients-info p {
+    font-size: 1rem;
+    margin: 5px 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .mealplan-container {
+        padding: 20px;
+    }
+
+    .meal-list {
+        grid-template-columns: 1fr; /* Single column layout for smaller screens */
+    }
+}
