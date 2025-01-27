@@ -58,47 +58,51 @@ const BmiCalculator = () => {
         // Unit the conversion
 
         let heightInCm;
-        if (heightUnit === 'cm') {
-            heightInCm = parseFloat(height);
-            if (!heightInCm || heightInCm <= 0) {
-                alert('Please enter a valid height in cm.');
-                return;
-            }
-        } else {
-            const feet = parseFloat(heightFeet) || 0;
-            const inches = parseFloat(heightInches) || 0;
-            heightInCm = convertFeetAndInchesToCm(feet, inches);
-            if (heightInCm <= 0) {
-                alert('Please enter valid height in feet and inches.');
-                return;
-            }
+    if (heightUnit === 'cm') {
+        heightInCm = parseFloat(height);
+        if (!heightInCm || heightInCm <= 0) {
+            alert('Please enter a valid height in cm.');
+            return;
         }
+    } else {
+        const feet = parseFloat(heightFeet) || 0;
+        const inches = parseFloat(heightInches) || 0;
+        heightInCm = convertFeetAndInchesToCm(feet, inches);
+        if (heightInCm <= 0) {
+            alert('Please enter valid height in feet and inches.');
+            return;
+        }
+    }
 
-        const weightInKg = weightUnit === 'kg' ? parseFloat(weight) : convertPoundsToKg(parseFloat(weight));
+    const weightInKg = weightUnit === 'kg' ? parseFloat(weight) : convertPoundsToKg(parseFloat(weight));
     const heightInMeters = heightInCm / 100;
     const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
 
-        let bmiStatus = '';
-        let recommendedGoal = '';
+    // Set the BMI value
+    setBmi(bmiValue);
 
-        if (bmiValue < 18.5) {
-            bmiStatus = 'Underweight';
-            recommendedGoal = 'gain';
-        } else if (bmiValue < 24.9) {
-            bmiStatus = 'Normal weight';
-            recommendedGoal = 'maintain';
-        } else if (bmiValue < 29.9) {
-            bmiStatus = 'Overweight';
-            recommendedGoal = 'lose';
-        } else {
-            bmiStatus = 'Obesity';
-            recommendedGoal = 'lose';
-        }
-        setStatus(bmiStatus);
-        setWeightGoal(recommendedGoal);
-        setIsCalculated(true);
-        setShowGoalPopup(true);
-    };
+    let bmiStatus = '';
+    let recommendedGoal = '';
+
+    if (bmiValue < 18.5) {
+        bmiStatus = 'Underweight';
+        recommendedGoal = 'gain';
+    } else if (bmiValue < 24.9) {
+        bmiStatus = 'Normal weight';
+        recommendedGoal = 'maintain';
+    } else if (bmiValue < 29.9) {
+        bmiStatus = 'Overweight';
+        recommendedGoal = 'lose';
+    } else {
+        bmiStatus = 'Obesity';
+        recommendedGoal = 'lose';
+    }
+
+    setStatus(bmiStatus);
+    setWeightGoal(recommendedGoal);
+    setIsCalculated(true);
+    setShowGoalPopup(true);
+};
 
 
 
@@ -231,18 +235,6 @@ const BmiCalculator = () => {
         <div>
             <NavBar/>
             <div className='page-container'>
-                <div className='info-container'>
-                    <h2 onClick={handleToggleInfo} style={{cursor: "pointer"}}>
-                        Your Details {isInfoVisible ? '▲' : '▼'}
-                    </h2>
-                    {isInfoVisible && (
-                        <div>
-                            <p><strong>BMI:</strong> {bmi}</p>
-                            <p><strong>Status:</strong> {status}</p>
-                            {isCalculated && calculateCalorieCount()}
-                        </div>
-                    )}
-                </div>
                 <div className='container'>
                     <h1>EatsEasy</h1>
                     <form onSubmit={calculateBMI}>
@@ -286,136 +278,199 @@ const BmiCalculator = () => {
 
                         <div className='input-group'>
                             <label>Weight:</label>
-                            <div style={{display: "flex", gap: "0.5rem"}}>
-                                <input
-                                    type="number"
-                                    value={weight}
-                                    onChange={(e) => setWeight(e.target.value)}
-                                    placeholder='Enter your weight'
-                                    required
-                                    disabled={isCalculated}
-                                />
-                                <Select
-                                    options={[{value: 'kg', label: 'kg'}, {value: 'lbs', label: 'lbs'}]}
-                                    value={{value: weightUnit, label: weightUnit}}
-                                    onChange={(option) => setWeightUnit(option.value)}
-                                    className='dropdown-container'
-                                    isDisabled={isCalculated}
-                                />
-
+                            <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
+                                <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>
+                                    <input
+                                        type="number"
+                                        value={weight}
+                                        onChange={(e) => setWeight(e.target.value)}
+                                        placeholder='Enter your weight'
+                                        required
+                                        disabled={isCalculated}
+                                    />
+                                    <div style={{display: "flex", gap: "0.5rem"}}>
+                                        <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                                            <input
+                                                type="radio"
+                                                name="weightUnit"
+                                                value="kg"
+                                                checked={weightUnit === "kg"}
+                                                onChange={(e) => setWeightUnit(e.target.value)}
+                                                disabled={isCalculated}
+                                            />
+                                            kg
+                                        </label>
+                                        <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                                            <input
+                                                type="radio"
+                                                name="weightUnit"
+                                                value="lbs"
+                                                checked={weightUnit === "lbs"}
+                                                onChange={(e) => setWeightUnit(e.target.value)}
+                                                disabled={isCalculated}
+                                            />
+                                            lbs
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className='input-group'>
                             <label>Height:</label>
-                            {heightUnit === 'cm' ? (
-                                <input
-                                    type="number"
-                                    value={height}
-                                    onChange={(e) => setHeight(e.target.value)}
-                                    placeholder='Enter your height in cm'
-                                    required
-                                    disabled={isCalculated}
-                                />
-                            ) : (
-                                <div style={{display: "flex", gap: "0.5rem"}}>
-                                    <input
-                                        type="number"
-                                        value={heightFeet}
-                                        onChange={(e) => setHeightFeet(e.target.value)}
-                                        placeholder='Feet'
-                                        required
-                                        disabled={isCalculated}
-                                    />
-                                    <input
-                                        type="number"
-                                        value={heightInches}
-                                        onChange={(e) => setHeightInches(e.target.value)}
-                                        placeholder='Inches'
-                                        required
-                                        disabled={isCalculated}
-                                    />
+                            <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
+                                <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>
+                                    {heightUnit === 'cm' ? (
+                                        <input
+                                            type="number"
+                                            style={{width: "410px"}} // Adjust width for compact size
+                                            value={height}
+                                            onChange={(e) => setHeight(e.target.value)}
+                                            placeholder='Enter height in cm'
+                                            required
+                                            disabled={isCalculated}
+                                        />
+                                    ) : (
+                                        <div style={{display: "flex", gap: "0.5rem"}}>
+                                            <input
+                                                type="number"
+                                                style={{width: "200px"}} // Adjust width for feet
+                                                value={heightFeet}
+                                                onChange={(e) => setHeightFeet(e.target.value)}
+                                                placeholder='Feet'
+                                                required
+                                                disabled={isCalculated}
+                                            />
+                                            <input
+                                                type="number"
+                                                style={{width: "200px"}} // Adjust width for inches
+                                                value={heightInches}
+                                                onChange={(e) => setHeightInches(e.target.value)}
+                                                placeholder='Inches'
+                                                required
+                                                disabled={isCalculated}
+                                            />
+                                        </div>
+                                    )}
+                                    <div style={{display: "flex", gap: "0.5rem"}}>
+                                        <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                                            <input
+                                                type="radio"
+                                                name="heightUnit"
+                                                value="cm"
+                                                checked={heightUnit === "cm"}
+                                                onChange={(e) => setHeightUnit(e.target.value)}
+                                                disabled={isCalculated}
+                                            />
+                                            cm
+                                        </label>
+                                        <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                                            <input
+                                                type="radio"
+                                                name="heightUnit"
+                                                value="Feet & Inches"
+                                                checked={heightUnit === "Feet & Inches"}
+                                                onChange={(e) => setHeightUnit(e.target.value)}
+                                                disabled={isCalculated}
+                                            />
+                                            Feet & Inches
+                                        </label>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
+                        </div>
+
+
+                        {showGoalPopup && (
+                            <div className="popup-overlay"
+                                 onClick={() => setShowGoalPopup(false)}>
+                                <div className="popup-content"
+                                     onClick={(e) => e.stopPropagation()}>
+                                    <h2 className="text-white">Select Your Weight Goal</h2>
+
+                                    {/* Toggle Button for BMI and Status */}
+                                    <button
+                                        onClick={() => setIsInfoVisible(!isInfoVisible)} // Toggle visibility
+                                        className="toggle-button"
+                                    >
+                                        {isInfoVisible ? "Hide BMI and Status ▲" : "View BMI and Status ▼"}
+                                    </button>
+
+                                    {/* Conditionally Show BMI and Status */}
+                                    {isInfoVisible && (
+                                        <div className="bmi-details">
+                                            <p><strong>BMI:</strong> {bmi}</p>
+                                            <p><strong>Status:</strong> {status}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Weight Goal Selection */}
+                                    <p className="bmi-recommendation">Based on your BMI, we recommend you
+                                        to <strong>{weightGoal}</strong> weight.</p>
+                                    <div className="goal-buttons">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setWeightGoal("lose");
+                                                setShowGoalPopup(false);
+                                                calculateCalorieCount();
+                                            }}
+                                            className={weightGoal === "lose" ? "highlighted" : ""}
+                                        >
+                                            Lose Weight
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setWeightGoal("maintain");
+                                                setShowGoalPopup(false);
+                                                calculateCalorieCount();
+                                            }}
+                                            className={weightGoal === "maintain" ? "highlighted" : ""}
+                                        >
+                                            Maintain Weight
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setWeightGoal("gain");
+                                                setShowGoalPopup(false);
+                                                calculateCalorieCount();
+                                            }}
+                                            className={weightGoal === "gain" ? "highlighted" : ""}
+                                        >
+                                            Gain Weight
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className='input-group'>
+                            Activity Level:
                             <Select
-                                options={[{value: 'cm', label: 'cm'}, {value: 'Feet & Inches', label: 'feet & inches'}]}
-                                value={{value: heightUnit, label: heightUnit}}
-                                onChange={(option) => setHeightUnit(option.value)}
-                                className='dropdown-wrapper1'
+                                options={options}
+                                styles={customStyles}
+                                onChange={(option) => setOptionPicked(option)}
                                 isDisabled={isCalculated}
                             />
                         </div>
-
-                     {showGoalPopup && (
-    <div className="popup-overlay">
-        <div className="popup-content">
-            <h2 className="text-white">Select Your Weight Goal</h2>
-            <p>Based on your BMI, we recommend you to <strong>{weightGoal}</strong> weight.</p>
-
-            <div className="goal-buttons">
-                <button
-                    onClick={(e) => {
-                e.stopPropagation();
-                        setWeightGoal("lose");
-                        setShowGoalPopup(false);
-                        calculateCalorieCount();
-                    }}
-                    className={weightGoal === "lose" ? "highlighted" : ""}
-                >
-                    Lose Weight
-                </button>
-                <button
-                    onClick={(e) => {
-                e.stopPropagation();
-                        setWeightGoal("maintain");
-                        setShowGoalPopup(false);
-                        calculateCalorieCount();
-                    }}
-                    className={weightGoal === "maintain" ? "highlighted" : ""}
-                >
-                    Maintain Weight
-                </button>
-                <button
-                    onClick={(e) => {
-                    e.stopPropagation();
-                        setWeightGoal("gain");
-                        setShowGoalPopup(false);
-                        calculateCalorieCount();
-                    }}
-                    className={weightGoal === "gain" ? "highlighted" : ""}
-                >
-                    Gain Weight
-                </button>
-            </div>
-        </div>
-    </div>
-                     )}
-
-                        <div className='input-group'>
-                    Activity Level:
-                    <Select
-                        options={options}
-                        styles={customStyles}
-                        onChange={(option) => setOptionPicked(option)}
-                        isDisabled={isCalculated}
-                    />
-                </div>
-                {!isCalculated ? (
-    <button type="submit">Calculate</button>
-) : (
-    <>
-        <button onClick={calculateCalorieCount} className="nav-button">
-            Create Customised Recipes
-        </button>
-        <br></br>
-        <button type="button" onClick={resetForm}>Reset</button>
-    </>
-)}
-            </form>
+                        {!isCalculated ? (
+                            <button type="submit">Calculate</button>
+                        ) : (
+                            <>
+                                <button onClick={calculateCalorieCount} className="nav-button">
+                                    Create Customised Recipes
+                                </button>
+                                <br></br>
+                                <button type="button" onClick={resetForm}>Reset</button>
+                            </>
+                        )}
+                    </form>
                 </div>
             </div>
         </div>
     );
-}
+    }
 ;
-export default BmiCalculator;
+export default BmiCalculator;" and "/* BmiCalculator.css */
