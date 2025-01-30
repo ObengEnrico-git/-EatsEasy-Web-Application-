@@ -17,7 +17,6 @@ const BmiCalculator = () => {
     const [status, setStatus] = useState('');
     const [age, setAge] = useState('');
     const [optionPicked, setOptionPicked] = useState("");
-    const [isInfoVisible, setIsInfoVisible] = useState(false); 
     const [isCalculated, setIsCalculated] = useState(false);
     const navigate = useNavigate(); // React Router hook
 
@@ -200,7 +199,9 @@ const BmiCalculator = () => {
                 params: { targetCalories: TDEE },
             });
             const mealData = response.data;
-            navigate('/mealplan', { state: { mealData } }); // Redirect with meal data
+
+            // need to send TDEE for refresh feature
+            navigate('/mealplan', { state: { mealData, TDEE } }); 
         } catch (error) {
             console.error('Error fetching meal plan:', error);
         }
@@ -215,10 +216,6 @@ const BmiCalculator = () => {
             return <p>We recommend <b>reducing</b> your current intake.</p>;
         }
         return null;
-    };
-
-    const handleToggleInfo = () => {
-        setIsInfoVisible(!isInfoVisible);
     };
 
     const options = [
@@ -263,18 +260,6 @@ const BmiCalculator = () => {
 
     return (
         <div className='page-container'>
-            <div className='info-container'>
-                <h2 onClick={handleToggleInfo} style={{ cursor: "pointer" }}>
-                    Your Details {isInfoVisible ? '▲' : '▼'}
-                </h2>
-                {isInfoVisible && (
-                    <div>
-                        <p><strong>BMI:</strong> {bmi}</p>
-                        <p><strong>Status:</strong> {status}</p>
-                        {isCalculated && calculateCalorieCount()}
-                    </div>
-                )}
-            </div>
             <div className='container'>
                 <h1>EatsEasy</h1>
                 <form onSubmit={calculateBMI}>
