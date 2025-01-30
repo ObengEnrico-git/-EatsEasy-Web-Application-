@@ -473,4 +473,4 @@ const BmiCalculator = () => {
     );
     }
 ;
-export default BmiCalculator;" and "/* BmiCalculator.css */
+export default BmiCalculator;
