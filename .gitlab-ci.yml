@@ -35,6 +35,8 @@ build-backend:
     - cd backend
     - npm install
     - node index.js
+    - sleep 8
+    - if ! curl --silent http://localhost:8000 | grep "Backend running on http://localhost:8000"; then exit 1; fi
   only:
     - branches
 
