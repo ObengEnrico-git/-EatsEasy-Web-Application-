@@ -6,8 +6,39 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- test
+  - test
+  - build
+
 sast:
   stage: test
 include:
 - template: Security/SAST.gitlab-ci.yml
+  only:
+  - branches
+
+# Builds frontend
+build-frontend:
+  image: node:20
+  stage: build
+  script:
+    - cd eatseasy
+    - npm install
+    - npm run build
+  only:
+    - branches
+
+# Build Backend
+build-backend:
+  image: node:20  
+  stage: build
+  script:
+    - cd backend
+    - npm install
+    - node index.js &  
+    - sleep 5
+    - if ! curl --silent http://localhost:8000 | grep "Backend running on http://localhost:8000"; then exit 1; fi
+    - pkill -f "node index.js"  
+  only:
+    - branches
+
+# TODO: Once unit testing goes in then we need to add unit tests going off as well
