@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 8000;
 
 app.use(cors());
 
+app.get('/', (req, res) => {
+    res.send('Backend running on http://localhost:8000');
+});
+
 app.get('/mealplan', async (req, res) => {
     const targetCalories = req.query.targetCalories;
     try {
