@@ -34,9 +34,10 @@ build-backend:
   script:
     - cd backend
     - npm install
-    - node index.js
-    - sleep 8
+    - node index.js &  
+    - sleep 5
     - if ! curl --silent http://localhost:8000 | grep "Backend running on http://localhost:8000"; then exit 1; fi
+    - pkill -f "node index.js"  
   only:
     - branches
 
