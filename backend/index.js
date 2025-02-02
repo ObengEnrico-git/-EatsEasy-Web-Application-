@@ -7,6 +7,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
 const allowedDomains = ['https://api.spoonacular.com'];
 
 app.use(cors());
@@ -27,7 +28,8 @@ app.get('/mealplan', async (req, res) => {
     const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
 
     // Ensures only spoonacular is allowed and no other API endpoint
-    if (!allowedDomains.includes(new URL(apiUrl).origin)) {
+    const apiOrigin = new URL(apiUrl).origin;
+    if (!allowedDomains.includes(apiOrigin)) {
         return res.status(400).json({ error: 'Invalid API endpoint' });
     }
 
