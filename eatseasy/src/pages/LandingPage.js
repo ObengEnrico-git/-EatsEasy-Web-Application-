@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '../landingComponents/Navbar';
-import { useNavigate } from 'react-router-dom';
 import Section1 from '../landingComponents/Section1';
 
 const LandingPage = () => {
