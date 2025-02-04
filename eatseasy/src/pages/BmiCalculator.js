@@ -17,8 +17,8 @@ const BmiCalculator = () => {
     const [status, setStatus] = useState('');
     const [age, setAge] = useState('');
     const [optionPicked, setOptionPicked] = useState("");
-    const [diet , setDiet] = useState("");
-    const [ allergen , setAllergenOptions] = useState("");
+    const [, setDiet] = useState(""); // remove unused var for now in this use-state name "diet"
+    const [ , setAllergenOptions] = useState(""); // remove unused var for now in this use-state name "allergen"
     const [isInfoVisible, setIsInfoVisible] = useState(false); 
     const [isCalculated, setIsCalculated] = useState(false);
     const navigate = useNavigate(); // React Router hook

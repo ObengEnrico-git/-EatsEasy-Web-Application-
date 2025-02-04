@@ -31,7 +31,7 @@ app.get('/mealplan', async (req, res) => {
     const apiOrigin = new URL(apiUrl).origin;
     if (!allowedDomains.includes(apiOrigin)) {
         return res.status(400).json({ error: 'Invalid API endpoint' });
-    }
+    }  
 
     try {
         const response = await axios.get(apiUrl, {
