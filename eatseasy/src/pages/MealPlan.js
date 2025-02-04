@@ -1,76 +1,165 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
 import "../styles/MealPlan.css";
+import axios from 'axios';
+import { MdAccessTime } from "react-icons/md";
+import { IoMdPeople } from "react-icons/io";
 
 const MealPlan = () => {
     const location = useLocation();
-    const { mealData } = location.state || {};
+    const navigate = useNavigate();
+    const { mealData: initialMealData, TDEE = 2000 } = location.state || {};
+    const [mealData, setMealData] = useState(initialMealData);
+    const [isLoading, setIsLoading] = useState(false);
 
     // tracks the day 
     const [visibleDay, setVisibleDay] = useState(null);
+    const [showInfoPanel, setShowInfoPanel] = useState(true);
 
     const toggleNutrients = (day) => {
         setVisibleDay(visibleDay === day ? null : day); 
     };
 
+    const handleAcknowledge = () => {
+        setShowInfoPanel(false);
+        document.body.style.overflow = 'auto'; 
+    };
+
+    useEffect(() => {
+        if (showInfoPanel) {
+            document.body.style.overflow = 'hidden'; 
+        }
+        return () => {
+            document.body.style.overflow = 'auto'; 
+        };
+    }, [showInfoPanel]);
+
+    const fetchNewMealPlan = async () => {
+        try {
+            if (!TDEE || isNaN(TDEE)) {
+                console.error('Invalid TDEE value');
+                navigate('/');
+                return;
+            }
+
+            setIsLoading(true);
+            const response = await axios.get('http://localhost:8000/mealplan', {
+                params: {
+                    targetCalories: Math.round(TDEE)
+                }
+            });
+            setMealData(response.data);
+        } catch (error) {
+            console.error('Error fetching new meal plan:', error);
+            if (error.response?.status === 400) {
+                alert('Invalid calorie target. Please try again.');
+                navigate('/');
+            } else {
+                alert('Failed to fetch meal plan. Please try again later.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const refreshMealPlan = () => {
+        fetchNewMealPlan();
+    };
+
+    const handleGoBack = () => {
+        navigate('/');
+    };
+
     return (
         <div>
             <NavBar />
-        <div className='mealplan-container'>
-            <h1>Recommended Meals</h1>
-            {mealData && mealData.week ? (
-                Object.keys(mealData.week).map((day) => (
-                    <div className='day-container' key={day}>
-                        <h2>
-                            {day.charAt(0).toUpperCase() + day.slice(1)} 
-                            <button 
-                                className="info-button" 
-                                onClick={() => toggleNutrients(day)}
-                                aria-label={`Toggle nutrients for ${day}`}
-                            >
-                                More Information
-                            </button>
-                        </h2>
-                        
-                        <div className='meal-list'>
-                            {mealData.week[day].meals.map((meal) => (
-                                <div className='meal-card' key={meal.id}>
-                                    <h3>{meal.title}</h3>
-                                    <img 
-                                        src={`https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`} 
-                                        alt={meal.title} 
-                                    />
-                                    <p>Ready in: {meal.readyInMinutes} minutes</p>
-                                    <p>Servings: {meal.servings}</p>
-                                    <a href={meal.sourceUrl} target="_blank" rel="noopener noreferrer">View Recipe</a>
-                                </div>
-                            ))}
+            <div className='mealplan-container'>
+                {showInfoPanel && mealData && mealData.week && (
+                    <div className='information-panel-overlay'>
+                        <div className='information-panel'>
+                            <h3><b>Important Information</b></h3>
+                            <p>This meal plan is based on your current BMR and TDEE. 
+                                It's recommended to eat a balanced meal plan, with a variety of protein, 
+                                carbohydrates, and fats.</p>
+                            <br />
+                            <p>You might see that the recipes serve "4" or "12". 
+                                This means the reciepe serves up to that amount, and does not mean to have, 
+                                for example, 4 meals of the same reciepe. 
+                                You can adjust the serving quantity after clicking "view recipe"</p>
+                            <br />
+                            <p><b><u>Remember to consult your GP / healthcare provider for any drastic changes to your diet.</u></b></p>
+                            <button onClick={handleAcknowledge}>Acknowledge</button>
                         </div>
-
-                        {visibleDay === day && (
-                            <div className='nutrients-info'>
-                                <h3><b>Nutritional Information</b></h3>
-                                <i>
-                                <p>Calories: {mealData.week[day].nutrients.calories}</p>
-                                <p>Protein: {mealData.week[day].nutrients.protein}g</p>
-                                <p>Fat: {mealData.week[day].nutrients.fat}g</p>
-                                <p>Carbohydrates: {mealData.week[day].nutrients.carbohydrates}g</p>
-                                </i>
-                            </div>
-                        )}
                     </div>
-                ))
-            ) : (
-                // TODO: Navigate the user back to the home page
-                <>
-                <p>No meal data available</p>
-                <p>Sorry, this page should never turn up</p>
-                <p>Please try our bmi calculator again</p>
-                <button> Go back</button>
-                </>
-            )}
-        </div>
+                )}
+                <h1>Recommended Meals</h1>
+                <button
+                    className="refresh-button"
+                    onClick={() => refreshMealPlan()}
+                    aria-label="Refresh meal plan"
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Refreshing...' : 'Refresh'}
+                </button>
+                {!mealData || !mealData.week ? (
+                    <>
+                        <p>No meal data available</p>
+                        <p>Please try our bmi calculator again</p>
+                        <button onClick={handleGoBack}>Go back</button>
+                    </>
+                ) : (
+                    Object.keys(mealData.week).map((day) => (
+                        <div className='day-container' key={day}>
+                            <h2>
+                                {day.charAt(0).toUpperCase() + day.slice(1)} 
+                                <button 
+                                    className="info-button" 
+                                    onClick={() => toggleNutrients(day)}
+                                    aria-label={`Toggle nutrients for ${day}`}
+                                >
+                                    More Information
+                                </button>
+                            </h2>
+                            
+                            <div className='meal-list'>
+                                {mealData.week[day].meals.map((meal) => (
+                                    <div className='meal-card' key={meal.id}>
+                                        <h3>{meal.title}</h3>
+                                        <img 
+                                            src={`https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`} 
+                                            alt={meal.title} 
+                                        />
+                                        <div className="meal-info">
+                                            <div className="meal-info-item">
+                                                <MdAccessTime className="meal-icon" />
+                                                {meal.readyInMinutes} minutes
+                                            </div>
+                                            <div className="meal-info-item">
+                                                <IoMdPeople className="meal-icon" />
+                                                Serves {meal.servings}
+                                            </div>
+                                        </div>
+                                        <a href={meal.sourceUrl} target="_blank" rel="noopener noreferrer">View Recipe</a>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {visibleDay === day && (
+                                <div className='nutrients-info'>
+                                    <h3><b>Nutritional Information</b></h3>
+                                    <i>
+                                    <p>Calories: {mealData.week[day].nutrients.calories}</p>
+                                    <p>Protein: {mealData.week[day].nutrients.protein}g</p>
+                                    <p>Fat: {mealData.week[day].nutrients.fat}g</p>
+                                    <p>Carbohydrates: {mealData.week[day].nutrients.carbohydrates}g</p>
+                                    </i>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 };
