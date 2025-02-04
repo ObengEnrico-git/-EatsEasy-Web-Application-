@@ -12,22 +12,26 @@ const NavBar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <div className="logo">
-          EatsEasy
-        </div>
-        <div className="hamburger-container" onClick={toggleMenu}>
-          <div className="hamburger">
+        <div className="navBar-hamburger-container" onClick={toggleMenu}>
+          <div className="navBar-hamburger">
             <div className="bar"></div>
             <div className="bar"></div>
             <div className="bar"></div>
           </div>
         </div>
+     
+        <img
+          src="/logo192.png"
+          alt="EatsEasy Logo"
+          className="navBar-logo-image"
+        />
       </div>
-      <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
+
+      <div className={`navBar-mobile-menu ${isMenuOpen ? 'open' : ''}`}>
         <ul>
-          <li><a href="home">Home</a></li>
-          <li><a href="/">Bmi Calculator</a></li>
-          <li><a href="mealplan">Meal Plan</a></li>
+          <li><a href="/">Home</a></li>
+          <li><a href="/Bmi">Bmi Calculator</a></li>
+          <li><a href="/mealplan">Meal Plan</a></li>
           <li><a href="LoginPage">Login Page</a></li>
         </ul>
       </div>

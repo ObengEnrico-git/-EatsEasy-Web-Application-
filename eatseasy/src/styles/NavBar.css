@@ -1,39 +1,43 @@
-/* NavBar.css */
+/* NavBar Styles */
 .navbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 1rem 1.5rem; 
     background-color: #2f855a;
     color: white;
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
     z-index: 1000;
 }
 
+/* Navbar Content */
 .navbar-content {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
     align-items: center;
+    gap: 1.5rem;
 }
 
-.logo {
-    font-size: 1.5rem;
-    font-weight: bold;
+.navBar-logo-image {
+    height: 30px;
+    margin-left: 2rem;
 }
 
 /* Hamburger Container */
-.hamburger-container {
+.navBar-hamburger-container {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start; 
     align-items: center;
     cursor: pointer;
-    z-index: 1001; /* Ensure the hamburger is clickable */
+    position: absolute;
+    left: 1rem; 
+    z-index: 1001;
 }
 
-.hamburger {
+/* Hamburger Button */
+.navBar-hamburger {
     background: none;
     border: none;
     display: flex;
@@ -46,48 +50,50 @@
 
 /* Hamburger Bars */
 .bar {
-    background-color: white;
+    background-color: rgb(0, 0, 0);
     height: 4px;
     width: 100%;
     border-radius: 2px;
 }
 
 /* Mobile Menu */
-.mobile-menu {
+.navBar-mobile-menu {
     position: fixed;
     top: 0;
-    right: -250px; /* Hide menu by default */
+    left: -250px; 
     background-color: #2f855a;
     width: 250px;
     height: 100%;
     padding: 2rem 1rem;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    transition: right 0.3s ease; /* Smooth slide-in transition */
-    z-index: 1000; /* Ensure it's on top of other content */
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease;
+    z-index: 1000;
 }
 
-.mobile-menu.open {
-    right: 0; /* Slide in when open */
+/* When menu is open */
+.navBar-mobile-menu.open {
+    left: 0; 
 }
 
-.mobile-menu ul {
+/* Menu Items */
+.navBar-mobile-menu ul {
     list-style: none;
     padding: 0;
 }
 
-.mobile-menu li {
+.navBar-mobile-menu li {
     margin: 1.5rem 0;
 }
 
-.mobile-menu a {
+.navBar-mobile-menu a {
     color: white;
     text-decoration: none;
     font-size: 1.2rem;
     display: block;
 }
 
-/* Mobile styling */
+/* Mobile Styling */
 @media (max-width: 768px) {
     .navbar-content {
         width: 100%;
