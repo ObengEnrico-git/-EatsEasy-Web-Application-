@@ -17,6 +17,8 @@ const BmiCalculator = () => {
     const [status, setStatus] = useState('');
     const [age, setAge] = useState('');
     const [optionPicked, setOptionPicked] = useState("");
+    const [diet , setDiet] = useState("");
+    const [ allergen , setAllergenOptions] = useState("");
     const [isInfoVisible, setIsInfoVisible] = useState(false); 
     const [isCalculated, setIsCalculated] = useState(false);
     const navigate = useNavigate(); // React Router hook
@@ -230,6 +232,35 @@ const BmiCalculator = () => {
         { value: "Very Active: intense exercise 6-7 times a week", label: "Very Active: intense exercise 6-7 times a week"},
     ];
 
+    const interestOptions = [
+  { value: "Gluten Free", label: "Gluten Free" },
+  { value: "Ketogenic", label: "Ketogenic" },
+  { value: "Vegetarian", label: "Vegetarian" },
+  { value: "Lacto-Vegetarian", label: "Lacto-Vegetarian" },
+  { value: "Ovo-Vegetarian", label: "Ovo-Vegetarian" },
+  { value: "Vegan", label: "Vegan" },
+  { value: "Pescetarian", label: "Pescetarian" },
+  { value: "Paleo", label: "Paleo" },
+  { value: "Primal", label: "Primal" },
+  { value: "Low FODMAP", label: "Low FODMAP" },
+  { value: "Whole30", label: "Whole30" }
+];
+
+const allergenOptions = [
+  { value: "Dairy", label: "Dairy" },
+  { value: "Egg", label: "Egg" },
+  { value: "Gluten", label: "Gluten" },
+  { value: "Grain", label: "Grain" },
+  { value: "Peanut", label: "Peanut" },
+  { value: "Seafood", label: "Seafood" },
+  { value: "Sesame", label: "Sesame" },
+  { value: "Shellfish", label: "Shellfish" },
+  { value: "Soy", label: "Soy" },
+  { value: "Sulfite", label: "Sulfite" },
+  { value: "Tree Nut", label: "Tree Nut" },
+  { value: "Wheat", label: "Wheat" }
+];
+
     const customStyles = {
         control: (provided) => ({
             ...provided,
@@ -258,6 +289,7 @@ const BmiCalculator = () => {
         setStatus('');
         setAge('');
         setOptionPicked('');
+        setDiet('');
         setIsCalculated(false);
     };
 
@@ -387,6 +419,30 @@ const BmiCalculator = () => {
                             isDisabled={isCalculated}
                         />
                     </div>
+
+
+                     <div className='input-group'>
+                        Diet restrictions:
+                        <Select
+                            options={interestOptions}
+                            styles={customStyles}
+                            onChange={(selected) => setAllergenOptions(selected)}
+                            isDisabled={isCalculated}
+                        />
+                    </div>
+                    
+                    <div className='input-group'>
+                        Allergen restrictions:
+                        <Select
+                            options={allergenOptions}
+                            styles={customStyles}
+                            onChange={(selected) => setAllergenOptions(selected)}
+                            isDisabled={isCalculated}
+                        />
+                    </div>
+
+
+
                     {!isCalculated ? (
                         <button type="submit">Calculate</button>
                     ) : (
