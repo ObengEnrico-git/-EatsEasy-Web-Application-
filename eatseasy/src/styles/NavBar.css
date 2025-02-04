@@ -1,0 +1,105 @@
+/* NavBar Styles */
+.navbar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 1rem 1.5rem; 
+    background-color: #2f855a;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Navbar Content */
+.navbar-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.navBar-logo-image {
+    height: 30px;
+    margin-left: 2rem;
+}
+
+/* Hamburger Container */
+.navBar-hamburger-container {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: center;
+    cursor: pointer;
+    position: absolute;
+    left: 1rem; 
+    z-index: 1001;
+}
+
+/* Hamburger Button */
+.navBar-hamburger {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 25px;
+    padding: 0;
+}
+
+/* Hamburger Bars */
+.bar {
+    background-color: rgb(0, 0, 0);
+    height: 4px;
+    width: 100%;
+    border-radius: 2px;
+}
+
+/* Mobile Menu */
+.navBar-mobile-menu {
+    position: fixed;
+    top: 0;
+    left: -250px; 
+    background-color: #2f855a;
+    width: 250px;
+    height: 100%;
+    padding: 2rem 1rem;
+    border-radius: 8px;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+
+/* When menu is open */
+.navBar-mobile-menu.open {
+    left: 0; 
+}
+
+/* Menu Items */
+.navBar-mobile-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.navBar-mobile-menu li {
+    margin: 1.5rem 0;
+}
+
+.navBar-mobile-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    display: block;
+}
+
+/* Mobile Styling */
+@media (max-width: 768px) {
+    .navbar-content {
+        width: 100%;
+    }
+
+    .mobile-menu ul {
+        padding-left: 0;
+    }
+}
