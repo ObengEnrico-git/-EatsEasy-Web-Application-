@@ -1,18 +1,21 @@
 /* Reset and base styles */
-html, body {
+/* html,
+body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background-color: #a7c3a9;
-    color: #333;
+    /*background-color: #a7c3a9;*/
+/* color: #333;
     min-height: 100%;
     overflow-y: auto;
-}
+} */
+
 
 /* Main container for the meal plan */
 .mealplan-container {
     padding: 40px 5%;
-    max-width: 1200px; /* Limit the max width for a centered layout */
+    max-width: 1200px;
+    /* Limit the max width for a centered layout */
     margin: 0 auto;
 }
 
@@ -118,6 +121,7 @@ html, body {
     }
 
     .meal-list {
-        grid-template-columns: 1fr; /* Single column layout for smaller screens */
+        grid-template-columns: 1fr;
+        /* Single column layout for smaller screens */
     }
 }
