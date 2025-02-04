@@ -8,12 +8,33 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+const allowedDomains = ['https://api.spoonacular.com'];
+
 app.use(cors());
 
+app.get('/', (req, res) => {
+    res.send('Backend running on http://localhost:8000');
+});
+
 app.get('/mealplan', async (req, res) => {
-    const targetCalories = req.query.targetCalories;
+    const targetCalories = parseInt(req.query.targetCalories, 10);
+
+    // Even though we check targetCalories (TDEE) within the frontend
+    // We need to still validate it within the backend (security risks)
+    if (isNaN(targetCalories) || targetCalories < 0 || targetCalories > 10000) {
+        return res.status(400).json({ error: 'Invalid targetCalories value. Please provide a number between 1 and 10000.' });
+    }
+
+    const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
+
+    // Ensures only spoonacular is allowed and no other API endpoint
+    const apiOrigin = new URL(apiUrl).origin;
+    if (!allowedDomains.includes(apiOrigin)) {
+        return res.status(400).json({ error: 'Invalid API endpoint' });
+    }
+
     try {
-        const response = await axios.get('https://api.spoonacular.com/mealplanner/generate', {
+        const response = await axios.get(apiUrl, {
             params: {
                 apiKey: process.env.SPOONACULAR_API_KEY,
                 targetCalories,
