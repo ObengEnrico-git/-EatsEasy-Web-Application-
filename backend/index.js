@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const rateLimit = require("express-rate-limit");
+const { query, validationResult } = require("express-validator");
 
 dotenv.config();
 
@@ -10,21 +12,61 @@ const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
 
+
+//  limits on the number of requests a client can send to backend for a period use-case: limit login attempts to prevent 
+// brute-force attacks
+// so this function only allowed for every 15 minutes only allows 100 requests
+//error status code: 429
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    limit: 100, 
+    message: "Too many requests from this IP, please try again later."
+});
+
+
 app.use(cors());
+
+app.use(limiter);
 
 app.get('/', (req, res) => {
     res.send('Backend running on http://localhost:8000');
 });
 
-app.get('/mealplan', async (req, res) => {
-    const targetCalories = parseInt(req.query.targetCalories, 10);
+app.get('/mealplan',[
+    query('targetCalories').isNumeric().withMessage("Calories must be a number")
+    .custom(value => {   
+    if ( value < 0 || value > 10000) {
+      throw new Error('Calories must be between 0 and 10000');
+    }
+    return true;
+  }),
+    query('targetDiet').optional().trim().escape(),
+    query('targetAllergen').optional().trim().escape()
+], async (req, res) => {
 
+const errors = validationResult(req);
+    
     // Even though we check targetCalories (TDEE) within the frontend
     // We need to still validate it within the backend (security risks)
-    if (isNaN(targetCalories) || targetCalories < 0 || targetCalories > 10000) {
-        return res.status(400).json({ error: 'Invalid targetCalories value. Please provide a number between 1 and 10000.' });
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() }); // Return errors if validation fails
     }
 
+    console.log("Query Params:", req.query);
+
+    const targetCalories = parseInt(req.query.targetCalories, 10);// rounds 
+   // console.log(targetCalories);
+    const targetDiet = req.query.targetDiet;    
+  //  console.log(targetDiet);
+    const targetAllergen = req.query.targetAllergen;
+  //  console.log(targetAllergen);
+
+//debugging
+   if (!process.env.SPOONACULAR_API_KEY) {
+        console.error("API key is missing. Please check your .env file.");
+        return res.status(500).json({ error: 'API key is missing.' });
+    }
+   
     const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
 
     // Ensures only spoonacular is allowed and no other API endpoint
@@ -37,8 +79,9 @@ app.get('/mealplan', async (req, res) => {
         const response = await axios.get(apiUrl, {
             params: {
                 apiKey: process.env.SPOONACULAR_API_KEY,
-                targetCalories,
-                timeFrame: 'week',
+                targetCalories,               
+                 diet: targetDiet || "", 
+                 exclude: targetAllergen || ""
             },
         });
         res.json(response.data);
