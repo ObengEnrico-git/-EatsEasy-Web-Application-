@@ -1,7 +1,14 @@
 import React from 'react'
 import { ReactTyped } from "react-typed";
+import { useNavigate } from 'react-router-dom';
 
 const Section1 = () => {
+    const navigate = useNavigate();
+
+    const handleGetStarted = () => {
+        navigate('/Bmi');
+    };
+
     return (
         <div
             className="text-white h-screen bg-cover bg-center"
@@ -32,7 +39,7 @@ const Section1 = () => {
                     <p className="md:text-2xl text-xl font-bold mt-4 text-[#07853D]">
                         Personalised meals made for you
                     </p>
-                    <button className="bg-[#13290C] text-white w-[200px] rounded-md font-medium my-6 mx-auto py-3">
+                    <button onClick={handleGetStarted} className="bg-[#13290C] text-white w-[200px] rounded-md font-medium my-6 mx-auto py-3">
                         Get Started
                     </button>
                 </div>
