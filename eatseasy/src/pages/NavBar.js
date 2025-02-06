@@ -32,7 +32,7 @@ const NavBar = () => {
           <li><a href="/">Home</a></li>
           <li><a href="/Bmi">Bmi Calculator</a></li>
           <li><a href="/mealplan">Meal Plan</a></li>
-          <li><a href="LoginPage">Login Page</a></li>
+          <li><a href="/Login">Login Page</a></li>
         </ul>
       </div>
     </nav>
