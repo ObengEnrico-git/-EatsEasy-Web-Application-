@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const db = require('./database');
 const auth = require('./auth');
+const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
@@ -14,6 +15,14 @@ const allowedDomains = ['https://api.spoonacular.com'];
 
 app.use(cors());
 app.use(express.json());
+
+// Add rate limiter for forgot password so you can't spam our backend
+// TODO (potentially) : add this rate lmiter for all our endpoints?
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // this equals 1 hour
+    max: 5, // limit each IP to 5 requests per windowMs (1 hour)
+    message: { error: 'Too many password reset attempts. Please try again in an hour.' }
+});
 
 app.get('/', (req, res) => {
     res.send('Backend running on http://localhost:8000');
@@ -81,6 +90,23 @@ app.get('/mealplan', async (req, res) => {
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: 'Failed to fetch meal plans' });
+    }
+});
+
+// Forgot Password Endpoint
+app.post('/forgotpassword', forgotPasswordLimiter, async (req, res) => {
+    const { username, email, currentPassword, newPassword} = req.body;
+
+    // Validate input
+    if (!username || !email || !currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    try {
+        const result = await auth.forgetPassword(username, email, currentPassword, newPassword);
+        res.status(200).json({ message: result.message });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 });
 

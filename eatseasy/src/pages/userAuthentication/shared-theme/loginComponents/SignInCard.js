@@ -2,11 +2,13 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import MuiCard from '@mui/material/Card';
-import Checkbox from '@mui/material/Checkbox';
+// For "Remember Me checkbox"
+// import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
+// For "Remember me checkbox"
+// import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -66,22 +68,28 @@ export default function SignInCard() {
     if (!isValid) {
       return;
     }
+    
+    const emailInput = event.target.querySelector('#email');
+    const passwordInput = event.target.querySelector('#password');
+
+    if (!emailInput || !passwordInput) {
+      console.error('Required form fields are missing');
+      return;
+    }
 
     const formData = {
-      email: event.target.email.value,
-      password: event.target.password.value,
+      email: emailInput.value,
+      password: passwordInput.value,
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/login', formData);
-      console.log('Login successful:', response.data);
+      await axios.post('http://localhost:8000/login', formData);
       setAlertInfo({
         show: true,
         type: 'success',
         message: 'Successfully logged in'
       });
     } catch (error) {
-      console.error('Login error:', error.response?.data?.error || error.message);
       setAlertInfo({
         show: true,
         type: 'error',
@@ -181,10 +189,11 @@ export default function SignInCard() {
               color={passwordError ? 'error' : 'primary'}
             />
           </FormControl>
-          <FormControlLabel
+          {/* Commented out Remember me as this is a "nice to have" feature */}
+          {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
-          />
+          /> */}
           <ForgotPassword open={open} handleClose={handleClose} />
           <Button type="submit" fullWidth variant="contained">
             Sign in

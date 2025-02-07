@@ -133,8 +133,7 @@ export default function Signup(props) {
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/register', formData);
-      console.log('Registration successful:', response.data);
+      await axios.post('http://localhost:8000/register', formData);
       setAlertInfo({
         show: true,
         type: 'success',
@@ -143,7 +142,6 @@ export default function Signup(props) {
       
       navigate('/login');
     } catch (error) {
-      console.error('Registration error:', error.response?.data?.error || error.message);
       setAlertInfo({
         show: true,
         type: 'error',

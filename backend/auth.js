@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const db = require('./database');
 const dotenv = require('dotenv');
 
+
 dotenv.config();
 
 // For bcrypt password hashing -> this is more secure than SHA256
@@ -56,9 +57,9 @@ async function registerUser(username, password, email) {
 // Function to log in a user
 async function loginUser(email, password) {
     try {
-        const sanitizedEmail = email.toLowerCase().trim();
+        const sanitisedEmail = email.toLowerCase().trim();
 
-        if (sanitizedEmail.length > 255) {
+        if (sanitisedEmail.length > 255) {
             throw new Error('Email exceeds maximum length');
         }
 
@@ -67,7 +68,7 @@ async function loginUser(email, password) {
             FROM users
             WHERE email = $1;
         `;
-        const values = [sanitizedEmail];
+        const values = [sanitisedEmail];
 
         const result = await db.query(query, values);
         const user = result.rows[0];
@@ -89,10 +90,61 @@ async function loginUser(email, password) {
     } catch (err) {
         console.error('Error logging in user:', err);
         throw err;
+    }  
+}
+
+async function forgetPassword(username, email, currentPassword, newPassword) {
+    try {
+        const sanitisedEmail = email.toLowerCase().trim();
+
+        // Validate email length
+        if (sanitisedEmail.length > 255) {
+            throw new Error('Email exceeds maximum length');
+        }
+
+        // Fetch the user from the database
+        const fetchQuery = `
+            SELECT user_id, password
+            FROM users
+            WHERE username = $1 AND email = $2;
+        `;
+        const fetchValues = [username, sanitisedEmail];
+
+        const fetchResult = await db.query(fetchQuery, fetchValues);
+        const user = fetchResult.rows[0];
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // Validate the current password
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            throw new Error('Current password is incorrect');
+        }
+
+        // Hash the new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+        // Update the user's password in the database
+        const updateQuery = `
+            UPDATE users
+            SET password = $1
+            WHERE user_id = $2;
+        `;
+        const updateValues = [hashedNewPassword, user.user_id];
+
+        await db.query(updateQuery, updateValues);
+
+        return { message: 'Password updated successfully' };
+    } catch (err) {
+        console.error('Error resetting password:', err);
+        throw err;
     }
 }
 
 module.exports = {
     registerUser,
     loginUser,
+    forgetPassword,
 };
