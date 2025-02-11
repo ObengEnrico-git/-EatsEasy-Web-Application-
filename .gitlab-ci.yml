@@ -16,6 +16,17 @@ include:
   only:
   - branches
 
+  # Run frontend unit tests
+test-frontend:
+  image: node:20
+  stage: test
+  script:
+    - cd eatseasy
+    - npm install
+    - npm test a 
+  only:
+    - branches
+
 # Builds frontend
 build-frontend:
   image: node:20
@@ -40,5 +51,3 @@ build-backend:
     - pkill -f "node index.js"  
   only:
     - branches
-
-# TODO: Once unit testing goes in then we need to add unit tests going off as well
