@@ -1,3 +1,6 @@
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+
 stages:
   - test
 
@@ -25,7 +28,7 @@ test-backend:
 
 # Dependency scanning (frontend)
 dependency-scanning-frontend:
-  extends: dependency_scanning  # Extend the correct job from the template
+  extends: dependency_scanning 
   variables:
     DS_TARGET_PATH: "eatseasy"
   only:
@@ -33,7 +36,7 @@ dependency-scanning-frontend:
 
 # Dependency scanning (backend)
 dependency-scanning-backend:
-  extends: dependency_scanning  # Extend the correct job from the template
+  extends: dependency_scanning 
   variables:
     DS_TARGET_PATH: "backend"
   only:
