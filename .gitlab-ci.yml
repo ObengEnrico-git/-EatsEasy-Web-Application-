@@ -11,6 +11,6 @@ include:
   - local: .gitlab-ci-config/.gitlab-ci-build.yml
 
 stages:
-  - build
   - test
+  - build
 
