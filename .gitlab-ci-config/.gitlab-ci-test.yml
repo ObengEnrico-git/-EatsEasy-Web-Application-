@@ -1,0 +1,44 @@
+stages:
+  - test
+
+# Frontend unit tests
+test-frontend:
+  image: node:20
+  stage: test
+  script:
+    - cd eatseasy
+    - npm install
+    - npm test
+  only:
+    - branches
+
+# Backend unit tests
+test-backend:
+  image: node:20
+  stage: test
+  script:
+    - cd backend
+    - npm install
+    - npm test
+  only:
+    - branches
+
+# Dependency scanning (frontend)
+dependency-scanning-frontend:
+  stage: test
+  include:
+    - template: Security/Dependency-Scanning.gitlab-ci.yml
+  variables:
+    DS_TARGET_PATH: "eatseasy"
+  only:
+    - branches
+
+# Dependency scanning (backend)
+dependency-scanning-backend:
+  stage: test
+  include:
+    - template: Security/Dependency-Scanning.gitlab-ci.yml
+  variables:
+    DS_TARGET_PATH: "backend"
+  only:
+    - branches
