@@ -23,6 +23,8 @@ import Snackbar from '@mui/material/Snackbar';
 import NavBar from '../NavBar';
 import axios from 'axios';
 import { useState } from 'react';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -73,6 +75,7 @@ export default function Signup(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
   const [alertInfo, setAlertInfo] = useState({
     show: false,
     type: '',
@@ -126,6 +129,8 @@ export default function Signup(props) {
       return;
     }
 
+    setLoading(true);
+
     const formData = {
       username: event.target.name.value,
       email: event.target.email.value,
@@ -137,16 +142,20 @@ export default function Signup(props) {
       setAlertInfo({
         show: true,
         type: 'success',
-        message: 'Successfully logged in'
+        message: 'Successfully signed up'
       });
       
-      navigate('/login');
+      setTimeout(() => {
+        setLoading(false);
+        navigate('/login');
+      }, 2000);
     } catch (error) {
       setAlertInfo({
         show: true,
         type: 'error',
-        message: `Sign in failed: ${error.response?.data?.error || error.message}`
+        message: `Sign up failed: ${error.response?.data?.error || error.message}`
       });
+      setLoading(false);
     }
   };
 
@@ -273,23 +282,33 @@ export default function Signup(props) {
         </Card>
 
         <Snackbar
-        open={alertInfo.show}
-        autoHideDuration={6000}
-        onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
+          open={alertInfo.show}
+          autoHideDuration={6000}
           onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
-          severity={alertInfo.type}
-          variant="filled"
-          sx={{ width: '100%' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
-          <AlertTitle>
-            {alertInfo.type === 'success' ? 'Success' : 'Error'}
-          </AlertTitle>
-          {alertInfo.message}
-        </Alert>
-      </Snackbar>
+          <Alert 
+            onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
+            severity={alertInfo.type}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            <AlertTitle>
+              {alertInfo.type === 'success' ? 'Success' : 'Error'}
+            </AlertTitle>
+            {alertInfo.message}
+          </Alert>
+        </Snackbar>
+
+        <Backdrop
+          sx={{ 
+            color: '#fff', 
+            zIndex: (theme) => theme.zIndex.modal + 1
+          }}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
       </SignUpContainer>
     </AppTheme>
   );

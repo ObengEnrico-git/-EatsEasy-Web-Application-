@@ -233,20 +233,35 @@ export default function SignInCard() {
       </Card>
 
       <Snackbar
-        open={alertInfo.show}
+        open={alertInfo.show && alertInfo.type === 'success'}
         autoHideDuration={6000}
         onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert 
           onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
-          severity={alertInfo.type}
+          severity="success"
           variant="filled"
           sx={{ width: '100%' }}
         >
-          <AlertTitle>
-            {alertInfo.type === 'success' ? 'Success' : 'Error'}
-          </AlertTitle>
+          <AlertTitle>Success</AlertTitle>
+          {alertInfo.message}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={alertInfo.show && alertInfo.type === 'error'}
+        autoHideDuration={6000}
+        onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setAlertInfo({ show: false, type: '', message: '' })}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          <AlertTitle>Error</AlertTitle>
           {alertInfo.message}
         </Alert>
       </Snackbar>
