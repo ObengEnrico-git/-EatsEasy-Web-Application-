@@ -1,3 +1,6 @@
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+
 stages:
   - test
 
@@ -9,8 +12,9 @@ test-frontend:
     - cd eatseasy
     - npm install
     - npm test
-  only:
-    - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 
 # Backend unit tests
 test-backend:
@@ -20,21 +24,23 @@ test-backend:
     - cd backend
     - npm install
     - npm test
-  only:
-    - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 
 # Dependency scanning (frontend)
 dependency-scanning-frontend:
   extends: gemnasium-dependency_scanning 
   variables:
     DS_TARGET_PATH: "eatseasy"
-  only:
-    - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 
 # Dependency scanning (backend)
 dependency-scanning-backend:
-  extends: gemnasium-dependency_scanning 
+  extends: gemnasium-dependency_scanning
   variables:
     DS_TARGET_PATH: "backend"
-  only:
-    - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
