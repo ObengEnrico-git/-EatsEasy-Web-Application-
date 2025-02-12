@@ -25,24 +25,16 @@ test-backend:
 
 # Dependency scanning (frontend)
 dependency-scanning-frontend:
-  stage: test
-  include:
-    - template: Security/Dependency-Scanning.gitlab-ci.yml
+  extends: .dependency_scanning  # Inherit from the template
   variables:
     DS_TARGET_PATH: "eatseasy"
-  script:
-    - echo "Running dependency scanning for frontend..."
   only:
     - branches
 
 # Dependency scanning (backend)
 dependency-scanning-backend:
-  stage: test
-  include:
-    - template: Security/Dependency-Scanning.gitlab-ci.yml
+  extends: .dependency_scanning  # Inherit from the template
   variables:
     DS_TARGET_PATH: "backend"
-  script:
-    - echo "Running dependency scanning for backend..."
   only:
     - branches
