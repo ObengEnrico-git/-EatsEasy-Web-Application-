@@ -25,7 +25,7 @@ test-backend:
 
 # Dependency scanning (frontend)
 dependency-scanning-frontend:
-  extends: .dependency_scanning  # Inherit from the template
+  extends: dependency_scanning  # Extend the correct job from the template
   variables:
     DS_TARGET_PATH: "eatseasy"
   only:
@@ -33,7 +33,7 @@ dependency-scanning-frontend:
 
 # Dependency scanning (backend)
 dependency-scanning-backend:
-  extends: .dependency_scanning  # Inherit from the template
+  extends: dependency_scanning  # Extend the correct job from the template
   variables:
     DS_TARGET_PATH: "backend"
   only:
