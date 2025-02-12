@@ -30,6 +30,8 @@ dependency-scanning-frontend:
     - template: Security/Dependency-Scanning.gitlab-ci.yml
   variables:
     DS_TARGET_PATH: "eatseasy"
+  script:
+    - echo "Running dependency scanning for frontend..."
   only:
     - branches
 
@@ -40,5 +42,7 @@ dependency-scanning-backend:
     - template: Security/Dependency-Scanning.gitlab-ci.yml
   variables:
     DS_TARGET_PATH: "backend"
+  script:
+    - echo "Running dependency scanning for backend..."
   only:
     - branches
