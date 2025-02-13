@@ -1,6 +1,7 @@
 const request = require('supertest');
 const axios = require('axios');
 const app = require('../index');
+const db = require('../database');
 
 // Mock axios
 jest.mock('axios');
@@ -53,8 +54,15 @@ describe('Test Meal Plan API', () => {
         expect(response.body.week.monday.meals[0]).toHaveProperty('title');
     });
 
+    //TODO: Add database connection test check
+
     // Clean up mocks after each test
     afterEach(() => {
         jest.resetAllMocks();
+    });
+
+    // Close the database connection
+    afterAll(async () => {
+        await db.closePool();
     });
 });
