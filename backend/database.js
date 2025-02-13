@@ -15,15 +15,25 @@ const pool = new Pool({
 });
 
 // This tests the database connection and then prints to console the status
-pool.query('SELECT NOW()', (err, res) => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-    } else {
+const testConnection = async () => {
+    try {
+        const res = await pool.query('SELECT NOW()');
         console.log('Database connected successfully:', res.rows[0]);
+        return true;
+    } catch (err) {
+        console.error('Error connecting to the database:', err);
+        return false;
     }
-});
+};
+
+// Add a function to close the pool
+const closePool = async () => {
+    await pool.end();
+};
 
 // this exports a query function that the other files can use (aka, auth.js)
 module.exports = {
-    query: (text, params) => pool.query(text, params)
+    query: (text, params) => pool.query(text, params),
+    testConnection,
+    closePool
 };

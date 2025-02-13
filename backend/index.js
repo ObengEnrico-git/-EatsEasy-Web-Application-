@@ -110,6 +110,15 @@ app.post('/forgotpassword', forgotPasswordLimiter, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Backend running on http://localhost:${PORT}`);
-});
+// Export app for testing
+module.exports = app;
+
+// Start server only when not in testing mode
+if (require.main === module) {
+    // Test the database connection before starting the server
+    db.testConnection().then(() => {
+        app.listen(PORT, () => {
+            console.log(`Backend running on http://localhost:${PORT}`);
+        });
+    });
+}
