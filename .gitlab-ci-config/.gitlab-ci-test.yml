@@ -20,6 +20,8 @@ test-frontend:
 test-backend:
   image: node:20
   stage: test
+  variables:
+    SPOONACULAR_API_KEY: ${SPOONACULAR_API_KEY}
   script:
     - cd backend
     - npm install

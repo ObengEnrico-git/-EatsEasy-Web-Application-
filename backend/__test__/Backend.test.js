@@ -1,5 +1,9 @@
 const request = require('supertest');
+const axios = require('axios');
 const app = require('../index');
+
+// Mock axios
+jest.mock('axios');
 
 describe('Test Meal Plan API', () => {
 
@@ -19,20 +23,38 @@ describe('Test Meal Plan API', () => {
 
     // Test #3: Validate the `/mealplan` route with proper query parameters
     it('fetches meal plans successfully with valid targetCalories', async () => {
-        const response = await request(app).get('/mealplan').query({ targetCalories: 2000 });
+        // Mock the API response
+        const mockResponse = {
+            data: {
+                week: {
+                    monday: {
+                        meals: [
+                            {
+                                id: 123,
+                                title: "Test Meal"
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+        
+        axios.get.mockResolvedValueOnce(mockResponse);
+
+        const response = await request(app)
+            .get('/mealplan')
+            .query({ targetCalories: 2000 });
     
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('week');
         expect(response.body.week).toHaveProperty('monday');
         expect(response.body.week.monday).toHaveProperty('meals');
-    
-        // Check one sample meal exists in Monday meals
         expect(response.body.week.monday.meals[0]).toHaveProperty('id');
         expect(response.body.week.monday.meals[0]).toHaveProperty('title');
     });
 
     // Clean up mocks after each test
     afterEach(() => {
-        jest.restoreAllMocks();
+        jest.resetAllMocks();
     });
 });
