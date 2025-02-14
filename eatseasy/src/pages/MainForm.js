@@ -75,7 +75,7 @@ const MainForm = () => {
             height: 8,
             borderRadius: 5,
             "& .MuiLinearProgress-bar": {
-              backgroundColor: "#FF6A00",
+              backgroundColor: "#4CAF50",
             },
           }}
         />
