@@ -5,7 +5,7 @@ const cors = require('cors');
 const db = require('./database');
 const auth = require('./auth');
 const rateLimit = require('express-rate-limit');
-const { query, validationResult } = require("express-validator");
+const { query, validationResult } = require("express-validator"); 
 
 
 dotenv.config();
@@ -15,13 +15,12 @@ const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
 
-//  limits on the number of requests a client can send to backend for a period use-case: limit login attempts to prevent 
-// brute-force attacks
-// so this function only allowed for every 15 minutes only allows 100 requests
+
+// so this function only allowed for every 15 minutes only allows 10 requests
 //error status code: 429
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    limit: 20, 
+    limit: 10, 
     message: "Too many requests from this IP, please try again later."
 });
 
@@ -79,16 +78,17 @@ app.post('/login', async (req, res) => {
 
 // Mealplan Endpoint
 // Generates a mealplan based on a users TDEE (targetCalories)
-app.get(
+app.get(    
   '/mealplan',
   [
     // Validate 
-    query('targetCalories').isNumeric().withMessage('Calories must be a number').custom((value) => {
-        if (value < 0 || value > 10000) {
-          throw new Error('Calories must be between 0 and 10000');
-        }
-        return true;
-      }),
+    query('targetCalories').custom((value) => {
+  const num = Number(value);
+  if (isNaN(num) || num < 1 || num > 10000) {     // pre validation not using req or res to check using middleware recommand for login
+    throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
+  }
+  return true;
+}),
     //  sanitize targetDiet and targetAllergen
     query('targetDiet').optional().trim().escape(),
     query('targetAllergen').optional().trim().escape()
@@ -97,13 +97,17 @@ app.get(
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ error: errors.array()[0].msg });
     }
 
     // Extract parameters
     const targetCalories = parseInt(req.query.targetCalories, 10);
+   // console.log(targetCalories);
     const targetDiet = req.query.targetDiet || "";
+    //console.log(targetDiet);
     const targetAllergen = req.query.targetAllergen || "";
+    //console.log(targetAllergen);
+
 
     
 
@@ -123,7 +127,7 @@ app.get(
           targetCalories: targetCalories,
           diet: targetDiet,
           exclude: targetAllergen,
-         // timeFrame: 'week' default is week 
+          timeFrame: 'week'
         }
       });
       res.json(response.data);

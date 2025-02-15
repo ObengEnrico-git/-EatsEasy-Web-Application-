@@ -1,12 +1,10 @@
-
-import React, { useState } from 'react';
-import NavBar from './NavBar';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import NavBar from "./NavBar";
+import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress, Typography } from "@mui/material";
 import "../styles/BmiCalculator.css";
-import Select from 'react-select';
-import axios from 'axios';
-
+import Select from "react-select";
+import axios from "axios";
 
 const interestOptions = [
   { value: "Gluten Free", label: "Gluten Free" },
@@ -19,7 +17,7 @@ const interestOptions = [
   { value: "Paleo", label: "Paleo" },
   { value: "Primal", label: "Primal" },
   { value: "Low FODMAP", label: "Low FODMAP" },
-  { value: "Whole30", label: "Whole30" }
+  { value: "Whole30", label: "Whole30" },
 ];
 
 const allergenOptions = [
@@ -34,7 +32,7 @@ const allergenOptions = [
   { value: "Soy", label: "Soy" },
   { value: "Sulfite", label: "Sulfite" },
   { value: "Tree Nut", label: "Tree Nut" },
-  { value: "Wheat", label: "Wheat" }
+  { value: "Wheat", label: "Wheat" },
 ];
 
 const customStyles = {
@@ -52,40 +50,40 @@ const customStyles = {
     backgroundColor: state.isSelected ? "lightgrey" : "white",
     fontSize: "16px",
     padding: "10px",
-  })
+  }),
 };
 
 const BmiCalculator = () => {
   const navigate = useNavigate();
-  const [weight, setWeight] = useState('');
-  const [weightUnit, setWeightUnit] = useState('kg');
-  const [gender, setGender] = useState('');
-  const [heightFeet, setHeightFeet] = useState('');
-  const [heightInches, setHeightInches] = useState('');
-  const [height, setHeight] = useState('');
-  const [heightUnit, setHeightUnit] = useState('cm');
-  const [age, setAge] = useState(''); 
+  const [weight, setWeight] = useState("");
+  const [weightUnit, setWeightUnit] = useState("kg");
+  const [gender, setGender] = useState("");
+  const [heightFeet, setHeightFeet] = useState("");
+  const [heightInches, setHeightInches] = useState("");
+  const [height, setHeight] = useState("");
+  const [heightUnit, setHeightUnit] = useState("cm");
+  const [age, setAge] = useState("");
   const [diet, setDietOptions] = useState("");
-  const [allergen, setAllergenOptions] = useState("");  
+  const [allergen, setAllergenOptions] = useState("");
   const [bmi, setBmi] = useState(null);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState("");
   const [optionPicked, setOptionPicked] = useState("");
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isCalculated, setIsCalculated] = useState(false);
   const [showGoalPopup, setShowGoalPopup] = useState(false);
-  const [weightGoal, setWeightGoal] = useState("");  
-  const [currentStep, setCurrentStep] = useState(1);  
+  const [weightGoal, setWeightGoal] = useState("");
+  const [currentStep, setCurrentStep] = useState(1);
 
-  const convertFeetAndInchesToCm = (feet, inches) => feet * 30.48 + inches * 2.54;
+  const convertFeetAndInchesToCm = (feet, inches) =>
+    feet * 30.48 + inches * 2.54;
   const convertPoundsToKg = (pounds) => pounds * 0.453592;
 
-  
-  const goToStep2 = (e) => {//next button in the first form 
+  const goToStep2 = (e) => {
+    //next button in the first form
     e.preventDefault();
 
-    
     if (!weight || weight <= 0 || !age || age <= 0 || !gender) {
-      alert('Please enter valid values for weight, age, and gender.');
+      alert("Please enter valid values for weight, age, and gender.");
       return;
     }
 
@@ -98,10 +96,10 @@ const BmiCalculator = () => {
     }
 
     let heightInCm;
-    if (heightUnit === 'cm') {
+    if (heightUnit === "cm") {
       heightInCm = parseFloat(height);
       if (!heightInCm || heightInCm <= 0) {
-        alert('Please enter a valid height in cm.');
+        alert("Please enter a valid height in cm.");
         return;
       }
     } else {
@@ -109,51 +107,49 @@ const BmiCalculator = () => {
       const inches = parseFloat(heightInches) || 0;
       heightInCm = convertFeetAndInchesToCm(feet, inches);
       if (heightInCm <= 0) {
-        alert('Please enter valid height in feet and inches.');
+        alert("Please enter valid height in feet and inches.");
         return;
       }
     }
 
-    
     setCurrentStep(2);
   };
 
-  
   const calculateBMI = () => {
-  
-
-   
     let heightInCm;
-    if (heightUnit === 'cm') {
+    if (heightUnit === "cm") {
       heightInCm = parseFloat(height);
     } else {
       const feet = parseFloat(heightFeet) || 0;
       const inches = parseFloat(heightInches) || 0;
       heightInCm = convertFeetAndInchesToCm(feet, inches);
     }
-    const weightInKg = weightUnit === 'kg'
-      ? parseFloat(weight)
-      : convertPoundsToKg(parseFloat(weight));
+    const weightInKg =
+      weightUnit === "kg"
+        ? parseFloat(weight)
+        : convertPoundsToKg(parseFloat(weight));
     const heightInMeters = heightInCm / 100;
-    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
+    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(
+      2
+    );
 
     setBmi(bmiValue);
 
-    let bmiStatus = '';
-    let recommendedGoal = '';
+    let bmiStatus = "";
+    let recommendedGoal = "";
 
     if (bmiValue < 18.5) {
-      bmiStatus = 'Underweight';
-      recommendedGoal = 'gain';
+      bmiStatus = "Underweight";
+      recommendedGoal = "gain";
     } else if (bmiValue < 24.9) {
-      bmiStatus = 'Normal weight';
-      recommendedGoal = 'maintain';
+      bmiStatus = "Normal weight";
+      recommendedGoal = "maintain";
     } else if (bmiValue < 29.9) {
-      bmiStatus = 'Overweight';
-      recommendedGoal = 'lose';
+      bmiStatus = "Overweight";
+      recommendedGoal = "lose";
     } else {
-      bmiStatus = 'Obesity';
-      recommendedGoal = 'lose';
+      bmiStatus = "Obesity";
+      recommendedGoal = "lose";
     }
 
     setStatus(bmiStatus);
@@ -162,16 +158,20 @@ const BmiCalculator = () => {
     setShowGoalPopup(true);
   };
 
-  
-  const calculateCalorieCount = () => {
+  const calculateCalorieCount = (goal) => {
     if (!isCalculated) return null;
 
-    const heightInCm = heightUnit === 'cm'
-      ? parseFloat(height)
-      : convertFeetAndInchesToCm(parseFloat(heightFeet) || 0, parseFloat(heightInches) || 0);
-    const weightInKg = weightUnit === 'kg'
-      ? parseFloat(weight)
-      : convertPoundsToKg(parseFloat(weight));
+    const heightInCm =
+      heightUnit === "cm"
+        ? parseFloat(height)
+        : convertFeetAndInchesToCm(
+            parseFloat(heightFeet) || 0,
+            parseFloat(heightInches) || 0
+          );
+    const weightInKg =
+      weightUnit === "kg"
+        ? parseFloat(weight)
+        : convertPoundsToKg(parseFloat(weight));
 
     let BMR = 0;
     if (gender === "Male") {
@@ -204,83 +204,94 @@ const BmiCalculator = () => {
     const TDEE = BMR * activityMultiplier;
 
     let targetCalories = TDEE;
-    if (weightGoal === "lose") {
+    if (goal === "lose") {
       targetCalories -= 500;
-    } else if (weightGoal === "gain") {
+    } else if (goal === "gain") {
       targetCalories += 500;
     }
 
-    fetchMealPlan(targetCalories, diet, allergen);
+    fetchMealPlan(targetCalories);
+    console.log(targetCalories);
+    
   };
 
-  const fetchMealPlan = async (targetCalories, diet , allergen) => {
+  const fetchMealPlan = async (targetCalories) => {
     try {
-      const response = await axios.get('http://localhost:8000/mealplan', {        
-        params: { targetCalories: targetCalories, targetDiet: diet.value, targetAllergen: allergen.value} 
+      const response = await axios.get("http://localhost:8000/mealplan", {
+        params: {
+          targetCalories,
+          targetDiet: diet.value,
+          
+          targetAllergen: allergen.value
+
+          
+
+        }
+
       });
       const mealData = response.data;
-      navigate('/mealplan', { state: { mealData } });
+      navigate("/mealplan", { state: { mealData , targetCalories, diet , allergen} });
     } catch (error) {
-      console.error('Error fetching meal plan:', error);
+      console.error("Error fetching meal plan:", error);
     }
   };
 
-  
   const resetForm = () => {
-    setWeight('');
-    setWeightUnit('kg');
-    setGender('');
-    setHeight('');
-    setHeightUnit('cm');
-    setBmi(null);
-    setStatus('');
-    setAge('');
-    setOptionPicked('');
+    setWeight("");
+    setWeightUnit("kg");
+    setGender("");
+    setHeight("");
+    setHeightUnit("cm");
+    setBmi("");
+    setStatus("");
+    setAge("");
+    setOptionPicked("");
     setIsCalculated(false);
-    setCurrentStep(1); 
-    setDietOptions(null);
-    setAllergenOptions(null);
+    setCurrentStep(1);
+    setDietOptions("");
+    setAllergenOptions("");
   };
 
   return (
     <div>
       <NavBar />
-      <div className='bmiCalculator-page-container' style={{ display: "flex", flexDirection: "row" }}>
-        <div className='container'>
+      <div
+        className="bmiCalculator-page-container"
+        style={{ display: "flex", flexDirection: "row" }}
+      >
+        <div className="container">
           <h1>EatsEasy</h1>
 
-          {/* STEP 1: Basic info */}
+          <Box sx={{ width: "100%", maxWidth: "700px", mb: 2 }}>
+            <Typography
+              variant="body1"
+              sx={{ textAlign: "left", fontWeight: "bold" }}
+              id="progress-text"
+            >
+              Step {currentStep} of 2
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={currentStep === 1 ? 50 : 100}
+              aria-labelledby="progress-text"
+              //aria-valuenow={}
+              //aria-valuemin={}
+              //aria-valuemax={}
+              //   aria-label={`Progress: Step ${page + 1} of 4`}
+              sx={{
+                height: 8,
+                borderRadius: 5,
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: "#4CAF50",
+                },
+              }}
+            />
+          </Box>
+
+          {/* STEP 1:  */}
           {currentStep === 1 && (
             <form onSubmit={goToStep2}>
-                
-              <div className='bmiCalculator-radio-option'>
-                {/* Progress Bar */}
-      <Box sx={{ width: "100%", maxWidth: "700px", mb: 2 }}>
-        <Typography
-          variant="body1"
-          sx={{ textAlign: "left", fontWeight: "bold" }}
-          id="progress-text"
-        >
-          Step {currentStep} of 2
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={50}
-          aria-labelledby="progress-text"
-          aria-valuenow={50}
-          aria-valuemin={0}
-          aria-valuemax={100}
-       //   aria-label={`Progress: Step ${page + 1} of 4`}
-          sx={{
-            height: 8,
-            borderRadius: 5,
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: "#4CAF50",
-            },
-          }}
-        />
-      </Box>
-
+              <div className="bmiCalculator-radio-option">
                 <label>
                   Male
                   <input
@@ -304,37 +315,53 @@ const BmiCalculator = () => {
                   />
                 </label>
               </div>
-              
 
-              <div className='bmiCalculator-input-group'>
+              <div className="bmiCalculator-input-group">
                 <label>
                   Age
                   <input
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    placeholder='Enter your age'
+                    placeholder="Enter your age"
                     required
                     disabled={isCalculated}
                   />
                 </label>
               </div>
-              
 
-              <div className='bmiCalculator-input-group'>
+              <div className="bmiCalculator-input-group">
                 <label>Weight:</label>
-                <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
-                  <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
                     <input
                       type="number"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      placeholder='Enter your weight'
+                      placeholder="Enter your weight"
                       required
                       disabled={isCalculated}
                     />
-                    <div style={{display: "flex", gap: "0.5rem"}}>
-                      <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                        }}
+                      >
                         <input
                           type="radio"
                           name="weightUnit"
@@ -345,7 +372,13 @@ const BmiCalculator = () => {
                         />
                         kg
                       </label>
-                      <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                        }}
+                      >
                         <input
                           type="radio"
                           name="weightUnit"
@@ -361,44 +394,62 @@ const BmiCalculator = () => {
                 </div>
               </div>
 
-              <div className='bmiCalculator-input-group'>
+              <div className="bmiCalculator-input-group">
                 <label>Height:</label>
-                <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
-                  <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>
-                    {heightUnit === 'cm' ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {heightUnit === "cm" ? (
                       <input
                         type="number"
-                        style={{width: "410px"}}
+                        style={{ width: "410px" }}
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
-                        placeholder='Enter height in cm'
+                        placeholder="Enter height in cm"
                         required
                         disabled={isCalculated}
                       />
                     ) : (
-                      <div style={{display: "flex", gap: "0.5rem"}}>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
                         <input
                           type="number"
-                          style={{width: "200px"}}
+                          style={{ width: "200px" }}
                           value={heightFeet}
                           onChange={(e) => setHeightFeet(e.target.value)}
-                          placeholder='Feet'
+                          placeholder="Feet"
                           required
                           disabled={isCalculated}
                         />
                         <input
                           type="number"
-                          style={{width: "200px"}}
+                          style={{ width: "200px" }}
                           value={heightInches}
                           onChange={(e) => setHeightInches(e.target.value)}
-                          placeholder='Inches'
+                          placeholder="Inches"
                           required
                           disabled={isCalculated}
                         />
                       </div>
                     )}
-                    <div style={{display: "flex", gap: "0.5rem"}}>
-                      <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                        }}
+                      >
                         <input
                           type="radio"
                           name="heightUnit"
@@ -409,7 +460,13 @@ const BmiCalculator = () => {
                         />
                         cm
                       </label>
-                      <label style={{display: "flex", alignItems: "center", gap: "0.25rem"}}>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                        }}
+                      >
                         <input
                           type="radio"
                           name="heightUnit"
@@ -425,21 +482,34 @@ const BmiCalculator = () => {
                 </div>
               </div>
 
-              <div className='bmiCalculator-input-group'>
+              <div className="bmiCalculator-input-group">
                 Activity Level:
                 <Select
                   options={[
-                    {value: "Basal Metabolic Rate (BMR)", label: "Basal Metabolic Rate (BMR)"},
-                    {value: "Sedentary: little or no exercise", label: "Sedentary: little or no exercise"},
-                    {value: "Light: exercise 1-3 times a week", label: "Light: exercise 1-3 times a week"},
-                    {value: "Moderate: exercise 4-5 times a week", label: "Moderate: exercise 4-5 times a week"},
                     {
-                      value: "Active: daily exercise or intense exercise 3-4 times a week",
-                      label: "Active: intense exercise 4-5 times a week"
+                      value: "Basal Metabolic Rate (BMR)",
+                      label: "Basal Metabolic Rate (BMR)",
+                    },
+                    {
+                      value: "Sedentary: little or no exercise",
+                      label: "Sedentary: little or no exercise",
+                    },
+                    {
+                      value: "Light: exercise 1-3 times a week",
+                      label: "Light: exercise 1-3 times a week",
+                    },
+                    {
+                      value: "Moderate: exercise 4-5 times a week",
+                      label: "Moderate: exercise 4-5 times a week",
+                    },
+                    {
+                      value:
+                        "Active: daily exercise or intense exercise 3-4 times a week",
+                      label: "Active: intense exercise 4-5 times a week",
                     },
                     {
                       value: "Very Active: intense exercise 6-7 times a week",
-                      label: "Very Active: intense exercise 6-7 times a week"
+                      label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
                   styles={customStyles}
@@ -455,82 +525,56 @@ const BmiCalculator = () => {
 
           {/* step2: Diet Interest + Allergen */}
           {currentStep === 2 && (
-            
-            
-            <div style={{ marginTop: "2rem" }}>
-              <h2>Select Diet Preferences</h2>
-              {/* Progress Bar */}
-      
-              <div className='bmiCalculator-input-group' style={{ marginBottom: "1rem" }}>
-                <Box sx={{ width: "100%", maxWidth: "700px", mb: 2 }}>
-        <Typography
-          variant="body1"
-          sx={{ textAlign: "left", fontWeight: "bold" }}
-          id="progress-text"
-        >
-          Step {currentStep} of 2
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={100}
-          aria-labelledby="progress-text"
-          aria-valuenow={50}
-          aria-valuemin={0}
-          aria-valuemax={100}
-       //   aria-label={`Progress: Step ${page + 1} of 4`}
-          sx={{
-            height: 8,
-            borderRadius: 5,
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: "#4CAF50",
-            },
-          }}
-        />
-      </Box>
-                <label>Diet Interest:</label>
-                <Select
-                  options={interestOptions}
-                  styles={customStyles}
-                  value={diet}
-                  required
-                  onChange={(option) => setDietOptions(option)}
-                 // required
-                />
-              </div>
+            <form
+              data-testid="form2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                calculateBMI();
+              }}
+            >
+              {
+                <div style={{ marginTop: "2rem" }}>
+                  <h2>Select Diet Preferences</h2>
+                  <div className="bmiCalculator-input-group">
+                    <label>Diet Interest:</label>
+                    <div data-testid="dropdown-diet">
+                      <Select
+                         aria-label="Fruit"
+                        options={interestOptions}
+                        styles={customStyles}
+                        value={diet}
+                        required
+                        onChange={(option) => setDietOptions(option)}
+                      />
+                    </div>
+                  </div>
 
-              <h2>Select Allergen </h2>
-              <div className='bmiCalculator-input-group' style={{ marginBottom: "1rem" }}>
-                <label>Allergen:</label>
-                <Select
-                  options={allergenOptions}
-                  styles={customStyles}
-                  value={allergen}
-                  onChange={(option) => setAllergenOptions(option)}
-                 // required
-                />
-              </div>
+                  <h2>Select Allergen </h2>
+                  <div className="bmiCalculator-input-group">
+                    <label>Allergen:</label>
+                    <Select
+                      options={allergenOptions}
+                      styles={customStyles}
+                      value={allergen}
+                      onChange={(option) => setAllergenOptions(option)}
+                      // required
+                    />
+                  </div>
 
-              
-              {!isCalculated ? (
-                <button onClick={calculateBMI}>Calculate</button>
-              ) : (
-                <>
-                  <button onClick={calculateCalorieCount} className="bmiCalculator-nav-button">
-                    Create Customised Recipes
+                  <button type="submit"> Calculate</button>
+
+                  <button onClick={resetForm} style={{ marginTop: "20px" }}>
+                    Reset{" "}
                   </button>
-                  <br />
-                  <button onClick={resetForm}>Reset</button>
-                </>
-              )}
-            </div>
-            
+                </div>
+              }
+            </form>
           )}
 
-         
           {showGoalPopup && (
             <div
               className="bmiCalculator-popup-overlay"
-              onClick={() => setShowGoalPopup(true)} // forces user to click by setting it true 
+              onClick={() => setShowGoalPopup(true)} // forces user to click by setting it true
             >
               <div
                 className="bmiCalculator-popup-content"
@@ -542,19 +586,25 @@ const BmiCalculator = () => {
                   onClick={() => setIsInfoVisible(!isInfoVisible)}
                   className="toggle-button"
                 >
-                  {isInfoVisible ? "Hide BMI and Status ▲" : "View BMI and Status ▼"}
+                  {isInfoVisible
+                    ? "Hide BMI and Status ▲"
+                    : "View BMI and Status ▼"}
                 </button>
 
                 {isInfoVisible && (
                   <div className="bmiCalculator-bmi-details">
-                    <p><strong>BMI:</strong> {bmi}</p>
-                    <p><strong>Status:</strong> {status}</p>
-                    
+                    <p>
+                      <strong>BMI:</strong> {bmi}
+                    </p>
+                    <p>
+                      <strong>Status:</strong> {status}
+                    </p>
                   </div>
                 )}
 
                 <p className="bmiCalculator-bmi-recommendation">
-                  Based on your BMI, we recommend you to <strong>{weightGoal}</strong> weight.
+                  Based on your BMI, we recommend you to{" "}
+                  <strong>{weightGoal}</strong> weight.
                 </p>
                 <div className="bmiCalculator-goal-buttons">
                   <button
@@ -562,7 +612,7 @@ const BmiCalculator = () => {
                       e.stopPropagation();
                       setWeightGoal("lose");
                       setShowGoalPopup(false);
-                      calculateCalorieCount();
+                      calculateCalorieCount("lose");
                     }}
                     className={weightGoal === "lose" ? "highlighted" : ""}
                   >
@@ -582,9 +632,9 @@ const BmiCalculator = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setWeightGoal("gain");
+                      setWeightGoal("gain"); // happen to slow
                       setShowGoalPopup(false);
-                      calculateCalorieCount();
+                      calculateCalorieCount("gain"); // passed value
                     }}
                     className={weightGoal === "gain" ? "highlighted" : ""}
                   >

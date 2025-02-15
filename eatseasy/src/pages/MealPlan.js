@@ -9,7 +9,7 @@ import { IoMdPeople } from "react-icons/io";
 const MealPlan = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { mealData: initialMealData, TDEE = 2000 } = location.state || {};
+    const { mealData: initialMealData, targetCalories, diet, allergen } = location.state || {};
     const [mealData, setMealData] = useState(initialMealData);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -37,16 +37,25 @@ const MealPlan = () => {
 
     const fetchNewMealPlan = async () => {
         try {
-            if (!TDEE || isNaN(TDEE)) {
+            if (!targetCalories || isNaN(targetCalories)) {
+                
+                
                 console.error('Invalid TDEE value');
                 navigate('/');
                 return;
             }
 
             setIsLoading(true);
+               // console.log(targetCalories);
+                //console.log(diet.value);
+                //console.log(allergen.value);
+            
             const response = await axios.get('http://localhost:8000/mealplan', {
                 params: {
-                    targetCalories: Math.round(TDEE)
+                    targetCalories: Math.round(targetCalories),
+                    targetDiet: diet.value,
+                    targetAllergen: allergen.value
+
                 }
             });
             setMealData(response.data);
