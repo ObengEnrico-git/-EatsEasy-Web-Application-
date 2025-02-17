@@ -1,10 +1,20 @@
 import React from "react";
 import { Box, Chip, Typography } from "@mui/material";
-import Grid from '@mui/material/Grid2';
+import Grid from "@mui/material/Grid2"; // using Grid2
 
 const interests = [
-   "Dairy", "Egg", "Gluten", "Grain", "Peanut", "Seafood",
-  "Sesame", "Shellfish", "Soy", "Sulfite", "Tree Nut", "Wheat"
+  "Dairy",
+  "Egg",
+  "Gluten",
+  "Grain",
+  "Peanut",
+  "Seafood",
+  "Sesame",
+  "Shellfish",
+  "Soy",
+  "Sulfite",
+  "Tree Nut",
+  "Wheat",
 ];
 
 const InterestSelector = ({ selectedInterests, handleSelect }) => {
@@ -17,11 +27,13 @@ const InterestSelector = ({ selectedInterests, handleSelect }) => {
 
   return (
     <Box sx={{ maxWidth: "800px", width: "100%", px: 2, textAlign: "center" }}>
-      <Typography id="interest-selection-title" variant="h5" fontWeight="bold">
+      <Typography
+        id="interest-selection-title"
+        variant="h5"
+        fontWeight="bold"        
+        sx={{ mb: 2, color: "black" }}
+      >
         Choose Your Intolerances
-      </Typography>
-      <Typography sx={{ color: "gray", mb: 3 }}>
-         We'll personalize your meal plan based on your preferences.
       </Typography>
 
       <Grid container spacing={1} justifyContent="center">
@@ -31,22 +43,34 @@ const InterestSelector = ({ selectedInterests, handleSelect }) => {
               label={interest}
               onClick={() => handleSelect(interest)}
               onKeyDown={(event) => handleKeyPress(event, interest)}
+              // Remove focus immediately on blur if desired:
+              onBlur={(e) => e.currentTarget.blur()}
+              disableRipple
+              disableFocusRipple
               role="checkbox"
               aria-checked={selectedInterests.includes(interest)}
-              tabIndex="0"
+              tabIndex={0}
               sx={{
                 fontSize: "1rem",
-                fontWeight: selectedInterests.includes(interest) ? "bold" : "normal",
-                backgroundColor: selectedInterests.includes(interest) ? "#FF6A00" : "#fff",
-                color: selectedInterests.includes(interest) ? "#fff" : "#000",
+                fontWeight: selectedInterests.includes(interest)
+                  ? "bold"
+                  : "normal",
+                backgroundColor: selectedInterests.includes(interest)
+                  ? "#78AB80"
+                  : "#fff",
+                color: selectedInterests.includes(interest) ? "000000" : "#000",
                 border: "3px solid black",
                 borderRadius: "30px",
                 padding: "20px",
-                cursor: "pointer tab",
-                "&:hover": {
-                  backgroundColor: "#FF6A00",
-                  color: "#fff",
+                cursor: "pointer",
+                "&:hover": { 
+                  backgroundColor: "#78AB80",
+                  color: "000000",
+                  fontWeight: "bold"
+                   
                 },
+                
+                
               }}
             />
           </Grid>

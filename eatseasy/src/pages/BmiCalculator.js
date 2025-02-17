@@ -1,10 +1,43 @@
 import React, { useState } from "react";
 import NavBar from "./NavBar";
 import { useNavigate } from "react-router-dom";
-import { Box, LinearProgress, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
-import Select from "react-select";
+
+import { usePersistedState } from "./usePersistedState.tsx";
 import axios from "axios";
+import LinearProgress, {
+  linearProgressClasses,
+} from "@mui/material/LinearProgress";
+
+import {
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+} from "@mui/material";
+
+import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput";
+
+import { styled } from "@mui/material/styles";
+
+import InterestSelector from "./components/FormCompontents/IntolerancesForm";
+
+import WeightInput from "./components/weightInput";
+import HeightInput from "./components/heightInput";
+
+const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+  height: 8,
+  borderRadius: 5,
+  [`&.${linearProgressClasses.colorPrimary}`]: {
+    backgroundColor: "#38a169", // track color
+  },
+  [`& .${linearProgressClasses.bar}`]: {
+    borderRadius: 5,
+    backgroundColor: "#4CAF50",
+  },
+}));
 
 const interestOptions = [
   { value: "Gluten Free", label: "Gluten Free" },
@@ -20,22 +53,8 @@ const interestOptions = [
   { value: "Whole30", label: "Whole30" },
 ];
 
-const allergenOptions = [
-  { value: "Dairy", label: "Dairy" },
-  { value: "Egg", label: "Egg" },
-  { value: "Gluten", label: "Gluten" },
-  { value: "Grain", label: "Grain" },
-  { value: "Peanut", label: "Peanut" },
-  { value: "Seafood", label: "Seafood" },
-  { value: "Sesame", label: "Sesame" },
-  { value: "Shellfish", label: "Shellfish" },
-  { value: "Soy", label: "Soy" },
-  { value: "Sulfite", label: "Sulfite" },
-  { value: "Tree Nut", label: "Tree Nut" },
-  { value: "Wheat", label: "Wheat" },
-];
-
-const customStyles = {
+{
+  /*const customStyles = {
   control: (provided) => ({
     ...provided,
     borderRadius: "8px",
@@ -51,31 +70,46 @@ const customStyles = {
     fontSize: "16px",
     padding: "10px",
   }),
-};
+};*/
+}
 
 const BmiCalculator = () => {
   const navigate = useNavigate();
-  const [weight, setWeight] = useState("");
-  const [weightUnit, setWeightUnit] = useState("kg");
-  const [gender, setGender] = useState("");
-  const [heightFeet, setHeightFeet] = useState("");
-  const [heightInches, setHeightInches] = useState("");
-  const [height, setHeight] = useState("");
-  const [heightUnit, setHeightUnit] = useState("cm");
-  const [age, setAge] = useState("");
-  const [diet, setDietOptions] = useState("");
-  const [allergen, setAllergenOptions] = useState("");
-  const [bmi, setBmi] = useState(null);
+  const [weight, setWeight] = usePersistedState("weight", "");
+  const [weightUnit, setWeightUnit] = usePersistedState("weightUnit", "kg");
+  const [gender, setGender] = usePersistedState("gender", "");
+
+  const [height, setHeight] = usePersistedState("height", "");
+
+  const [heightUnit, setHeightUnit] = usePersistedState("heightUnit", "cm");
+  const [age, setAge] = usePersistedState("age", "");
+  const [diet, setDietOptions] = usePersistedState("diet", "");
+  const [error, setError] = useState("");
+
+  const [bmi, setBmi] = usePersistedState("bmi", "");
   const [status, setStatus] = useState("");
-  const [optionPicked, setOptionPicked] = useState("");
+  const [optionPicked, setOptionPicked] = usePersistedState("optionPicked", "");
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isCalculated, setIsCalculated] = useState(false);
   const [showGoalPopup, setShowGoalPopup] = useState(false);
   const [weightGoal, setWeightGoal] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
+  // Add at the top with your other state variables
+  const [selectedAllergens, setSelectedAllergens] = usePersistedState(
+    "selectedAllergens",
+    ""
+  );
 
-  const convertFeetAndInchesToCm = (feet, inches) =>
-    feet * 30.48 + inches * 2.54;
+  // Handler to toggle an allergen on/off
+  const handleAllergenSelect = (allergen) => {
+    if (selectedAllergens.includes(allergen)) {
+      setSelectedAllergens(selectedAllergens.filter((i) => i !== allergen));
+    } else {
+      setSelectedAllergens([...selectedAllergens, allergen]);
+    }
+  };
+
+  const convertFeetAndInchesToCm = (height) => height * 30.48;
   const convertPoundsToKg = (pounds) => pounds * 0.453592;
 
   const goToStep2 = (e) => {
@@ -103,9 +137,7 @@ const BmiCalculator = () => {
         return;
       }
     } else {
-      const feet = parseFloat(heightFeet) || 0;
-      const inches = parseFloat(heightInches) || 0;
-      heightInCm = convertFeetAndInchesToCm(feet, inches);
+      heightInCm = convertFeetAndInchesToCm(height);
       if (heightInCm <= 0) {
         alert("Please enter valid height in feet and inches.");
         return;
@@ -120,9 +152,7 @@ const BmiCalculator = () => {
     if (heightUnit === "cm") {
       heightInCm = parseFloat(height);
     } else {
-      const feet = parseFloat(heightFeet) || 0;
-      const inches = parseFloat(heightInches) || 0;
-      heightInCm = convertFeetAndInchesToCm(feet, inches);
+      heightInCm = convertFeetAndInchesToCm(height);
     }
     const weightInKg =
       weightUnit === "kg"
@@ -156,6 +186,7 @@ const BmiCalculator = () => {
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
     setShowGoalPopup(true);
+   
   };
 
   const calculateCalorieCount = (goal) => {
@@ -164,10 +195,7 @@ const BmiCalculator = () => {
     const heightInCm =
       heightUnit === "cm"
         ? parseFloat(height)
-        : convertFeetAndInchesToCm(
-            parseFloat(heightFeet) || 0,
-            parseFloat(heightInches) || 0
-          );
+        : convertFeetAndInchesToCm(parseFloat(height));
     const weightInKg =
       weightUnit === "kg"
         ? parseFloat(weight)
@@ -212,7 +240,9 @@ const BmiCalculator = () => {
 
     fetchMealPlan(targetCalories);
     console.log(targetCalories);
-    
+    console.log(diet);
+
+    console.log(selectedAllergens);
   };
 
   const fetchMealPlan = async (targetCalories) => {
@@ -220,23 +250,26 @@ const BmiCalculator = () => {
       const response = await axios.get("http://localhost:8000/mealplan", {
         params: {
           targetCalories,
-          targetDiet: diet.value,
-          
-          targetAllergen: allergen.value
-
-          
-
-        }
-
+          targetDiet: diet,
+          targetAllergen: selectedAllergens.join(","),
+        },
       });
       const mealData = response.data;
-      navigate("/mealplan", { state: { mealData , targetCalories, diet , allergen} });
+      navigate("/mealplan", {
+        state: {
+          mealData,
+          targetCalories,
+          diet,
+          allergen: { value: selectedAllergens.join(",") },
+        },
+      });
     } catch (error) {
       console.error("Error fetching meal plan:", error);
     }
   };
 
-  const resetForm = () => {
+  {
+    /*const resetForm = () => {
     setWeight("");
     setWeightUnit("kg");
     setGender("");
@@ -249,7 +282,33 @@ const BmiCalculator = () => {
     setIsCalculated(false);
     setCurrentStep(1);
     setDietOptions("");
-    setAllergenOptions("");
+    setSelectedAllergens([]);
+  };*/
+  }
+
+  // Handle paste event
+  const pasteChecks = (e) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData("Text");
+    if (!isNaN(pastedText) && pastedText.trim() !== "") {
+      e.target.value = pastedText;
+      setAge(pastedText);
+      setError("");
+    } else {
+      setError("Invalid paste: Only numbers are allowed");
+      console.warn("Invalid paste: Only numbers are allowed");
+    }
+  };
+
+  const handleMeasurementsChange = (e) => {
+    const inputValue = e.target.value;
+    if (!isNaN(inputValue) && inputValue.trim() !== "") {
+      setAge(inputValue);
+      setError("");
+    } else {
+      setAge("");
+      setError("Please enter a valid number.");
+    }
   };
 
   return (
@@ -262,7 +321,11 @@ const BmiCalculator = () => {
         <div className="container">
           <h1>EatsEasy</h1>
 
-          <Box sx={{ width: "100%", maxWidth: "700px", mb: 2 }}>
+          <Typography sx={{ color: "gray", mb: 2, textAlign: "center" }}>
+            We'll personalize your meal plan based on your preferences.
+          </Typography>
+
+          <Box sx={{ width: "100%", maxWidth: "700px", mb: 5 }}>
             <Typography
               variant="body1"
               sx={{ textAlign: "left", fontWeight: "bold" }}
@@ -270,21 +333,10 @@ const BmiCalculator = () => {
             >
               Step {currentStep} of 2
             </Typography>
-            <LinearProgress
+            <BorderLinearProgress
               variant="determinate"
               value={currentStep === 1 ? 50 : 100}
               aria-labelledby="progress-text"
-              //aria-valuenow={}
-              //aria-valuemin={}
-              //aria-valuemax={}
-              //   aria-label={`Progress: Step ${page + 1} of 4`}
-              sx={{
-                height: 8,
-                borderRadius: 5,
-                "& .MuiLinearProgress-bar": {
-                  backgroundColor: "#4CAF50",
-                },
-              }}
             />
           </Box>
 
@@ -292,199 +344,82 @@ const BmiCalculator = () => {
           {currentStep === 1 && (
             <form onSubmit={goToStep2}>
               <div className="bmiCalculator-radio-option">
-                <label>
-                  Male
-                  <input
-                    type="radio"
+                <FormControl
+                  component="fieldset"
+                  required
+                  disabled={isCalculated}
+                >
+                  <FormLabel
+                    component="legend"
+                    sx={{ textAlign: "center", color: "black" }}
+                  >
+                    Gender
+                  </FormLabel>
+                  <RadioGroup
+                    row
                     name="gender"
-                    value="Male"
+                    value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    required
-                    disabled={isCalculated}
-                  />
-                </label>
-                <label>
-                  Female
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Female"
-                    onChange={(e) => setGender(e.target.value)}
-                    required
-                    disabled={isCalculated}
-                  />
-                </label>
+                  >
+                    <FormControlLabel
+                      value="Male"
+                      control={<Radio required />}
+                      label="Male"
+                      sx={{ mx: 2, color: "black" }}
+                    />
+                    <FormControlLabel
+                      value="Female"
+                      control={<Radio required />}
+                      label="Female"
+                      sx={{ mx: 2, color: "black" }}
+                    />
+                  </RadioGroup>
+                </FormControl>
               </div>
 
               <div className="bmiCalculator-input-group">
                 <label>
-                  Age
-                  <input
+                  <FloatingLabelInput
+                    id="dietInterest"
+                    label="Enter your age"
                     type="number"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="Enter your age"
+                    onChange={handleMeasurementsChange}
+                    onPaste={pasteChecks}
                     required
-                    disabled={isCalculated}
+                    min="0"
+                    error={error}
                   />
                 </label>
               </div>
 
+              {/* Weight Input */}
               <div className="bmiCalculator-input-group">
-                <label>Weight:</label>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      placeholder="Enter your weight"
-                      required
-                      disabled={isCalculated}
-                    />
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="weightUnit"
-                          value="kg"
-                          checked={weightUnit === "kg"}
-                          onChange={(e) => setWeightUnit(e.target.value)}
-                          disabled={isCalculated}
-                        />
-                        kg
-                      </label>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="weightUnit"
-                          value="lbs"
-                          checked={weightUnit === "lbs"}
-                          onChange={(e) => setWeightUnit(e.target.value)}
-                          disabled={isCalculated}
-                        />
-                        lbs
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                <WeightInput
+                  disabled={isCalculated}
+                  onWeightChange={(val) => setWeight(val)}
+                  unit={weightUnit}
+                  onUnitChange={(newUnit) => setWeightUnit(newUnit)}
+                />
+              </div>
+
+              {/* Height Input */}
+              <div className="bmiCalculator-input-group">
+                <HeightInput
+                  disabled={isCalculated}
+                  onHeightChange={(val) => setHeight(val)}
+                  unit={heightUnit}
+                  UnitChange={(newUnit) => setHeightUnit(newUnit)}
+                />
               </div>
 
               <div className="bmiCalculator-input-group">
-                <label>Height:</label>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    {heightUnit === "cm" ? (
-                      <input
-                        type="number"
-                        style={{ width: "410px" }}
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        placeholder="Enter height in cm"
-                        required
-                        disabled={isCalculated}
-                      />
-                    ) : (
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <input
-                          type="number"
-                          style={{ width: "200px" }}
-                          value={heightFeet}
-                          onChange={(e) => setHeightFeet(e.target.value)}
-                          placeholder="Feet"
-                          required
-                          disabled={isCalculated}
-                        />
-                        <input
-                          type="number"
-                          style={{ width: "200px" }}
-                          value={heightInches}
-                          onChange={(e) => setHeightInches(e.target.value)}
-                          placeholder="Inches"
-                          required
-                          disabled={isCalculated}
-                        />
-                      </div>
-                    )}
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="heightUnit"
-                          value="cm"
-                          checked={heightUnit === "cm"}
-                          onChange={(e) => setHeightUnit(e.target.value)}
-                          disabled={isCalculated}
-                        />
-                        cm
-                      </label>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="heightUnit"
-                          value="Feet & Inches"
-                          checked={heightUnit === "Feet & Inches"}
-                          onChange={(e) => setHeightUnit(e.target.value)}
-                          disabled={isCalculated}
-                        />
-                        Feet & Inches
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bmiCalculator-input-group">
-                Activity Level:
-                <Select
+                <FloatingLabelInput
+                  id="activity-level"
+                  label="Activity Level"
+                  type="select" // This makes it render a select dropdown
+                  value={optionPicked}
+                  onChange={(e) => setOptionPicked(e.target.value)}
                   options={[
                     {
                       value: "Basal Metabolic Rate (BMR)",
@@ -512,14 +447,30 @@ const BmiCalculator = () => {
                       label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
-                  styles={customStyles}
-                  onChange={(option) => setOptionPicked(option)}
-                  isDisabled={isCalculated}
+                  required
+                  disabled={isCalculated}
                 />
               </div>
 
-              {/* step 2 next */}
-              <button type="submit">Next</button>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: "#38a169",
+                  color: "#fff",
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  borderRadius: "30px",
+                  padding: "12px 0",
+                  "&:hover": {
+                    backgroundColor: "FFFFFF",
+                  },
+                }}
+                aria-label="Proceed to the next step"
+              >
+                Next
+              </Button>
             </form>
           )}
 
@@ -533,48 +484,71 @@ const BmiCalculator = () => {
               }}
             >
               {
-                <div style={{ marginTop: "2rem" }}>
-                  <h2>Select Diet Preferences</h2>
-                  <div className="bmiCalculator-input-group">
-                    <label>Diet Interest:</label>
-                    <div data-testid="dropdown-diet">
-                      <Select
-                         aria-label="Fruit"
-                        options={interestOptions}
-                        styles={customStyles}
-                        value={diet}
-                        required
-                        onChange={(option) => setDietOptions(option)}
+                <div>
+                  <div>
+                    <h2 className="text-black md:mb-3 mb-1 font-bold text-2xl">
+                      Select Diet Preferences
+                    </h2>
+
+                    <div className="bmiCalculator-input-group ">
+                      <div
+                        data-testid="dropdown-diet"
+                        className=" md:mb-11 mb-10"
+                      >
+                        <FloatingLabelInput
+                          id="dietInterest"
+                          label="Diet Interest"
+                          type="select"
+                          value={diet}
+                          onChange={(e) => setDietOptions(e.target.value)}
+                          options={interestOptions}
+                          sx={{ mb: 5, color: "black" }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bmiCalculator-input-group md:mb-10 mb-5">
+                      <InterestSelector
+                        selectedInterests={selectedAllergens}
+                        handleSelect={handleAllergenSelect}
                       />
                     </div>
                   </div>
 
-                  <h2>Select Allergen </h2>
-                  <div className="bmiCalculator-input-group">
-                    <label>Allergen:</label>
-                    <Select
-                      options={allergenOptions}
-                      styles={customStyles}
-                      value={allergen}
-                      onChange={(option) => setAllergenOptions(option)}
-                      // required
-                    />
-                  </div>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                      backgroundColor: "#38a169",
+                      color: "#fff",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "30px",
+                      padding: "12px 0",
+                      mt: 5,
+                      "&:hover": {
+                        backgroundColor: "FFFFFF",
+                      },
+                    }}
+                    aria-label="Proceed to the next step"
+                  >
+                    Calculate
+                  </Button>
 
-                  <button type="submit"> Calculate</button>
-
-                  <button onClick={resetForm} style={{ marginTop: "20px" }}>
+                  {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
                     Reset{" "}
-                  </button>
+                  </button> */}
                 </div>
               }
             </form>
           )}
+          
 
           {showGoalPopup && (
             <div
               className="bmiCalculator-popup-overlay"
-              onClick={() => setShowGoalPopup(true)} // forces user to click by setting it true
+              onClick={() => setShowGoalPopup(false)} // forces user to click by setting it true
             >
               <div
                 className="bmiCalculator-popup-content"
@@ -623,7 +597,7 @@ const BmiCalculator = () => {
                       e.stopPropagation();
                       setWeightGoal("maintain");
                       setShowGoalPopup(false);
-                      calculateCalorieCount();
+                      calculateCalorieCount("maintain");
                     }}
                     className={weightGoal === "maintain" ? "highlighted" : ""}
                   >
@@ -632,7 +606,7 @@ const BmiCalculator = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setWeightGoal("gain"); // happen to slow
+                      setWeightGoal("gain");
                       setShowGoalPopup(false);
                       calculateCalorieCount("gain"); // passed value
                     }}

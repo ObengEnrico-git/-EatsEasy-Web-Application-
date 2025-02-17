@@ -42,16 +42,16 @@ function FloatingLabelInput({
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
               "& fieldset": {
-        borderColor: "black",  // Default border color
-        borderWidth: "2px",    // Increase border thickness
+        borderColor: "black",  
+        borderWidth: "2px",    
       },
        "&:hover fieldset": {
         borderColor: "#1976d2",  
-        borderWidth: "3px",  // Thicker border on hover
+        borderWidth: "3px",  
       },
         "&.Mui-focused fieldset": {
        
-        borderWidth: "3px",  // Optional: Make border thicker when focused
+        borderWidth: "3px",  
       }
               
             },
@@ -104,16 +104,16 @@ function FloatingLabelInput({
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
               "& fieldset": {
-        borderColor: "black",  // Default border color
-        borderWidth: "2px",    // Increase border thickness
+        borderColor: "black",  
+        borderWidth: "2px",    
       },
        "&:hover fieldset": {
         borderColor: "#1976d2",  
-        borderWidth: "3px",  // Thicker border on hover
+        borderWidth: "3px",  
       },
         "&.Mui-focused fieldset": {
        
-        borderWidth: "3px",  // Optional: Make border thicker when focused
+        borderWidth: "3px",  
       }
               
             },
