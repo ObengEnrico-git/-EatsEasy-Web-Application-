@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/NavBar.css';
 
-
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -12,7 +11,13 @@ const NavBar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <div className="navBar-hamburger-container" onClick={toggleMenu}>
+        <div
+          className="navBar-hamburger-container"
+          role="button"
+          aria-expanded={isMenuOpen}
+          aria-label="Toggle menu"
+          onClick={toggleMenu}
+        >
           <div className="navBar-hamburger">
             <div className="bar"></div>
             <div className="bar"></div>
