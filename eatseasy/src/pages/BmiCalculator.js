@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavBar from "./NavBar";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
@@ -145,7 +145,21 @@ const BmiCalculator = () => {
     }
 
     setCurrentStep(2);
+    window.history.pushState({ step: 2 }, "");
   };
+
+   // Listen to popstate events (browser back button)
+  useEffect(() => {
+    const handlePopState = (event) => {
+      // Check the history state or simply go back one step
+      if (currentStep === 2) {
+        setCurrentStep(1);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [currentStep]);
 
   const calculateBMI = () => {
     let heightInCm;
