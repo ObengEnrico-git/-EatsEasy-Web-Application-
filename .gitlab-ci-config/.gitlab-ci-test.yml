@@ -22,6 +22,7 @@ test-backend:
   stage: test
   variables:
     SPOONACULAR_API_KEY: ${SPOONACULAR_API_KEY}
+    JWT_SECRET: ${JWT_SECRET}
   script:
     - cd backend
     - npm install
