@@ -3,7 +3,7 @@ import NavBar from "./NavBar";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
-
+import InterestSelector from "./components/FormCompontents/IntolerancesForm.js";
 import { usePersistedState } from "./usePersistedState.tsx";
 import axios from "axios";
 import LinearProgress, {
@@ -22,7 +22,7 @@ import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput"
 
 import { styled } from "@mui/material/styles";
 
-import InterestSelector from "./components/FormCompontents/IntolerancesForm";
+
 
 import WeightInput from "./components/weightInput";
 import HeightInput from "./components/heightInput";
@@ -53,25 +53,7 @@ const interestOptions = [
   { value: "Whole30", label: "Whole30" },
 ];
 
-{
-  /*const customStyles = {
-  control: (provided) => ({
-    ...provided,
-    borderRadius: "8px",
-    boxShadow: "none",
-    textAlign: "left",
-    minHeight: "45px",
-    fontSize: "16px",
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    color: "black",
-    backgroundColor: state.isSelected ? "lightgrey" : "white",
-    fontSize: "16px",
-    padding: "10px",
-  }),
-};*/
-}
+
 
 const BmiCalculator = () => {
   const navigate = useNavigate();
@@ -282,23 +264,7 @@ const BmiCalculator = () => {
     }
   };
 
-  {
-    /*const resetForm = () => {
-    setWeight("");
-    setWeightUnit("kg");
-    setGender("");
-    setHeight("");
-    setHeightUnit("cm");
-    setBmi("");
-    setStatus("");
-    setAge("");
-    setOptionPicked("");
-    setIsCalculated(false);
-    setCurrentStep(1);
-    setDietOptions("");
-    setSelectedAllergens([]);
-  };*/
-  }
+ 
 
   // Handle paste event
   const pasteChecks = (e) => {
