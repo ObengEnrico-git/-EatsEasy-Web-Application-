@@ -10,7 +10,7 @@ import {
 import "../../styles/BmiCalculator.css";
 
 
-export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChange       }) {
+export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChange, label    }) {
   // We'll use "cm" and "ft" as units
   
   const [measurements, setMeasurements] = useState("");
@@ -89,8 +89,8 @@ export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChan
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* FloatingLabelInput for height value */}
         <FloatingLabelInput
-          id="measurements"
-          label="Enter measurements"
+          id="heightInput"
+          label={label}
           type="number"
           value={measurements}
           onChange={handleMeasurementsChange}

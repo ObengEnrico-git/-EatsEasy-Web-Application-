@@ -7,6 +7,10 @@ import "@testing-library/jest-dom";
 import BmiCalculator from "../pages/BmiCalculator";
 import MealPlan from "../pages/MealPlan";
 
+beforeEach(() => {
+  localStorage.clear();
+});
+
 describe("BmiCalculator Component", () => {
   test("The website renders correctly", () => {
     render(
@@ -14,6 +18,8 @@ describe("BmiCalculator Component", () => {
         <BmiCalculator />
       </MemoryRouter>
     );
+
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
     // Select the radio buttons
     const maleRadio = screen.getByRole("radio", { name: "Male" });
@@ -25,15 +31,30 @@ describe("BmiCalculator Component", () => {
 
     // Check for all text elements
     expect(screen.getByText(/EatsEasy/i)).toBeInTheDocument();
-    expect(screen.getByText(/Weight:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Height:/i)).toBeInTheDocument();
+
+    // Check for age input using test id
+    const ageInput = screen.getByTestId("enterAge");
+    expect(ageInput).toBeInTheDocument();
+
+    // Use the test id we set in FloatingLabelInput (assuming id="weight" becomes the test id)
+    const weightInput = screen.getByTestId("weight");
+    expect(weightInput).toBeInTheDocument();
+
+    const kgRadio = screen.getByLabelText(/Kilograms \(kg\)/i);
+    expect(kgRadio).toBeInTheDocument();
+    expect(kgRadio).toBeChecked();
+
+    const heightInput = screen.getByTestId("heightInput");
+    expect(heightInput).toBeInTheDocument();
+
+    const Radio = screen.getByLabelText(/Centimeters \(cm\)/i);
+    expect(Radio).toBeInTheDocument();
+    expect(Radio).toBeChecked();
+
+    const activityLevel = screen.getByTestId("activity-level");
+    expect(activityLevel).toBeInTheDocument();
+
     expect(screen.getByText(/Next/i)).toBeInTheDocument();
-
-    //check bar progress bar
-
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-
-    //need to check rendering of pop-up
   });
 
   test("allows user to select gender", async () => {
@@ -49,23 +70,23 @@ describe("BmiCalculator Component", () => {
     expect(maleRadio).not.toBeChecked();
     expect(femaleRadio).not.toBeChecked();
 
-    // Simulate selecting the "Male" radio button
     userEvent.click(maleRadio);
     expect(maleRadio).toBeChecked();
     expect(femaleRadio).not.toBeChecked();
   });
 
-  test("allows user to enter age", () => {
+  test("allows user to enter age", async () => {
     render(
       <MemoryRouter>
         <BmiCalculator />
       </MemoryRouter>
     );
+    //screen.debug();
+    const ageInput = screen.getByRole("textbox", { name: /Enter your age/i });
 
-    const ageInput = screen.getByPlaceholderText(/Enter your age/i);
+    expect(ageInput).toBeInTheDocument();
     userEvent.type(ageInput, "25");
-
-    expect(ageInput).toHaveValue(25);
+    expect(ageInput).toHaveValue("25");
   });
 
   test("allows user to enter weight and switch units", () => {
@@ -75,12 +96,17 @@ describe("BmiCalculator Component", () => {
       </MemoryRouter>
     );
 
-    const weightInput = screen.getByPlaceholderText(/Enter your weight/i);
+    const weightInput = screen.getByRole("textbox", { name: /Enter Weight/i });
+    expect(weightInput).toBeInTheDocument();
+
+    const kgRadio = screen.getByLabelText(/Pounds \(lb\)/i);
+    expect(kgRadio).toBeInTheDocument();
+
     userEvent.type(weightInput, "70");
 
-    expect(weightInput).toHaveValue(70);
+    expect(weightInput).toHaveValue("70");
 
-    const lbsRadio = screen.getByLabelText(/lbs/i);
+    const lbsRadio = screen.getByLabelText(/lb/i);
     userEvent.click(lbsRadio);
 
     expect(lbsRadio).toBeChecked();
@@ -93,15 +119,23 @@ describe("BmiCalculator Component", () => {
       </MemoryRouter>
     );
 
-    const heightInput = screen.getByPlaceholderText(/Enter height in cm/i);
-    userEvent.type(heightInput, "170");
+    const heightInput = screen.getByRole("textbox", { name: /Enter Height/i });
+    expect(heightInput).toBeInTheDocument();
 
-    expect(heightInput).toHaveValue(170);
+    const feetRadio = screen.getByLabelText(/Feet \(ft\)/i);
+    const kgRadio = screen.getByLabelText(/Kilograms \(kg\)/i);
 
-    const feetRadio = screen.getByLabelText(/Feet & Inches/i);
-    userEvent.click(feetRadio);
+    expect(feetRadio).toBeInTheDocument();
+    expect(kgRadio).toBeInTheDocument();
 
-    expect(feetRadio).toBeChecked();
+    userEvent.type(heightInput, "70");
+
+    expect(heightInput).toHaveValue("70");
+
+    const ftRadio = screen.getByLabelText(/ft/i);
+    userEvent.click(ftRadio);
+
+    expect(ftRadio).toBeChecked();
   });
 
   test("allows user go to step2 ", async () => {
@@ -111,31 +145,68 @@ describe("BmiCalculator Component", () => {
       </MemoryRouter>
     );
 
+    
+
     const maleRadio = screen.getAllByLabelText(/Male/i)[0];
     const femaleRadio = screen.getByLabelText(/Female/i);
 
     expect(maleRadio).not.toBeChecked();
     expect(femaleRadio).not.toBeChecked();
 
-    // Simulate selecting the "Male" radio button
     userEvent.click(maleRadio);
+    expect(maleRadio).toBeChecked();
+    expect(femaleRadio).not.toBeChecked();
 
-    const ageInput = screen.getByPlaceholderText(/Enter your age/i);
-    userEvent.type(ageInput, "25");
+    const ageInput = screen.getByRole("textbox", { name: /Enter your age/i });
 
-    const heightInput = screen.getByPlaceholderText(/Enter height in cm/i);
-    userEvent.type(heightInput, "100");
+    expect(ageInput).toBeInTheDocument();
+ userEvent.type(ageInput, "25");
+    expect(ageInput).toHaveValue("25");
 
-    const weightInput = screen.getByPlaceholderText(/Enter your weight/i);
+    //weight
+
+    const weightInput = screen.getByRole("textbox", { name: /Enter Weight/i });
+    expect(weightInput).toBeInTheDocument();
+
     userEvent.type(weightInput, "70");
 
-    userEvent.click(screen.getByRole("button", { name: /Next/i }));
-    // Wait for form2 to appear in the DOM
+    expect(weightInput).toHaveValue("70");
+
+    const lbsRadio = screen.getByLabelText(/Pound/i);
+    userEvent.click(lbsRadio);
+
+    expect(lbsRadio).toBeChecked();
+
+
+    const heightInput = screen.getByRole("textbox", { name: /Enter Height/i });
+    expect(heightInput).toBeInTheDocument();
+
+    const feetRadio = screen.getByLabelText(/Feet \(ft\)/i);
+    const kgRadio = screen.getByLabelText(/Kilograms \(kg\)/i);
+
+    expect(feetRadio).toBeInTheDocument();
+    expect(kgRadio).toBeInTheDocument();
+
+    userEvent.type(heightInput, "70");
+
+    expect(heightInput).toHaveValue("70");
+
+    const ftRadio = screen.getByLabelText(/ft/i);
+    userEvent.click(ftRadio);
+
+    expect(ftRadio).toBeChecked();
+
+    const nextButton = screen.getByRole("button", {
+      name: /Proceed to the next step/i,
+    });
+    userEvent.click(nextButton);
 
     await waitFor(() =>
       expect(screen.getByTestId("form2")).toBeInTheDocument()
     );
+
+    screen.debug();
   });
 
-  
+ 
 });

@@ -392,9 +392,9 @@ const BmiCalculator = () => {
               </div>
 
               <div className="bmiCalculator-input-group">
-                <label>
+                <label data-testid="age-input">
                   <FloatingLabelInput
-                    id="dietInterest"
+                    id= "enterAge"
                     label="Enter your age"
                     type="number"
                     value={age}
@@ -403,6 +403,7 @@ const BmiCalculator = () => {
                     required
                     min="0"
                     error={error}
+                    
                   />
                 </label>
               </div>
@@ -410,7 +411,10 @@ const BmiCalculator = () => {
               {/* Weight Input */}
               <div className="bmiCalculator-input-group">
                 <WeightInput
-                  disabled={isCalculated}
+                  disabled={isCalculated}   
+                  label="Enter Weight"
+                  
+
                   onWeightChange={(val) => setWeight(val)}
                   unit={weightUnit}
                   onUnitChange={(newUnit) => setWeightUnit(newUnit)}
@@ -421,6 +425,7 @@ const BmiCalculator = () => {
               <div className="bmiCalculator-input-group">
                 <HeightInput
                   disabled={isCalculated}
+                  label="Enter Height "
                   onHeightChange={(val) => setHeight(val)}
                   unit={heightUnit}
                   UnitChange={(newUnit) => setHeightUnit(newUnit)}
@@ -461,7 +466,7 @@ const BmiCalculator = () => {
                       label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
-                  required
+                  
                   disabled={isCalculated}
                 />
               </div>

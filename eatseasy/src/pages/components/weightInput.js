@@ -38,7 +38,7 @@ const MaterialUnitSelector = ({
   );
 };
 
-export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChange }) {
+export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChange, label }) {
   const [weight, setWeight] = useState("");
   const [error, setError] = useState(""); // Track error messages
 
@@ -113,7 +113,7 @@ export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChan
         {/* Floating Label Input on the left */}
         <FloatingLabelInput
           id="weight"
-          label="Enter Weight"
+          label={label}
           type="number"
           value={weight}
           onChange={handleWeightChange}
@@ -127,6 +127,7 @@ export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChan
           required
           min="0"
           error={error}
+        
           disabled={disabled}
         />
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { TextField, MenuItem } from "@mui/material";
-import InputAdornment from '@mui/material/InputAdornment';
+import InputAdornment from "@mui/material/InputAdornment";
 
 function FloatingLabelInput({
   id,
@@ -37,23 +37,27 @@ function FloatingLabelInput({
           aria-haspopup="listbox"
           aria-expanded={value ? "true" : "false"}
           {...rest}
+
+          slotProps={{
+            input: {
+               "data-testid": id,
+            }, 
+          }}
           sx={{
             mt: 1,
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
               "& fieldset": {
-        borderColor: "black",  
-        borderWidth: "2px",    
-      },
-       "&:hover fieldset": {
-        borderColor: "#1976d2",  
-        borderWidth: "3px",  
-      },
-        "&.Mui-focused fieldset": {
-       
-        borderWidth: "3px",  
-      }
-              
+                borderColor: "black",
+                borderWidth: "2px",
+              },
+              "&:hover fieldset": {
+                borderColor: "#1976d2",
+                borderWidth: "3px",
+              },
+              "&.Mui-focused fieldset": {
+                borderWidth: "3px",
+              },
             },
           }}
         >
@@ -80,49 +84,43 @@ function FloatingLabelInput({
           onChange={onChange}
           onPaste={onPaste}
           onKeyDown={onKeyDown}
-         required={required}
+          required={required}
           fullWidth
           error={Boolean(error)}
           helperText={
-              <span id="weight-helper-text" aria-live="assertive">
-                    {error || ""}
-                       </span>
-                         }
+            <span id="weight-helper-text" aria-live="assertive">
+              {error || ""}
+            </span>
+          }
           aria-labelledby={`${id}-label`}
           aria-describedby={`${id}-helper-text`}
           
-           slotProps={{
+          slotProps={{
             input: {
               endAdornment: unit && (
-                <InputAdornment position="end" >{unit}</InputAdornment>
-              ),
-            },
+                <InputAdornment position="end">{unit}</InputAdornment>
+              ), "data-testid": id,
+            }, 
           }}
-          
           sx={{
             mt: 1,
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
               "& fieldset": {
-        borderColor: "black",  
-        borderWidth: "2px",    
-      },
-       "&:hover fieldset": {
-        borderColor: "#1976d2",  
-        borderWidth: "3px",  
-      },
-        "&.Mui-focused fieldset": {
-       
-        borderWidth: "3px",  
-      }
-              
+                borderColor: "black",
+                borderWidth: "2px",
+              },
+              "&:hover fieldset": {
+                borderColor: "#1976d2",
+                borderWidth: "3px",
+              },
+              "&.Mui-focused fieldset": {
+                borderWidth: "3px",
+              },
             },
           }}
         />
-
-        
       )}
-      
     </div>
   );
 }
