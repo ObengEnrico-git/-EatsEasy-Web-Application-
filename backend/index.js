@@ -5,6 +5,8 @@ const cors = require('cors');
 const db = require('./database');
 const auth = require('./auth');
 const rateLimit = require('express-rate-limit');
+const { query, validationResult } = require("express-validator"); 
+
 
 dotenv.config();
 
@@ -13,8 +15,20 @@ const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
 
+
+// so this function only allowed for every 15 minutes only allows 10 requests
+//error status code: 429
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    limit: 100, 
+    message: "Too many requests from this IP, please try again later."
+});
+
 app.use(cors());
+app.use(limiter);
 app.use(express.json());
+
+
 
 // Add rate limiter for forgot password so you can't spam our backend
 // TODO (potentially) : add this rate lmiter for all our endpoints?
@@ -64,12 +78,39 @@ app.post('/login', async (req, res) => {
 
 // Mealplan Endpoint
 // Generates a mealplan based on a users TDEE (targetCalories)
-app.get('/mealplan', async (req, res) => {
-    const targetCalories = parseInt(req.query.targetCalories, 10);
-
-    if (isNaN(targetCalories) || targetCalories < 0 || targetCalories > 10000) {
-        return res.status(400).json({ error: 'Invalid targetCalories value. Please provide a number between 1 and 10000.' });
+app.get(    
+  '/mealplan',
+  [
+    // Validate 
+    query('targetCalories').custom((value) => {
+  const num = Number(value);
+  if (isNaN(num) || num < 1 || num > 10000) {     // pre validation not using req or res to check using middleware recommand for login
+    throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
+  }
+  return true;
+}),
+    //  sanitize targetDiet and targetAllergen
+    query('targetDiet').optional().trim().escape(),
+    
+    query('targetAllergen').optional().trim().escape()
+  ],
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array()[0].msg });
     }
+
+    // Extract parameters
+    const targetCalories = parseInt(req.query.targetCalories, 10);
+   console.log(targetCalories);
+    const targetDiet = req.query.targetDiet || "";
+    //console.log(targetDiet);
+    const targetAllergen = req.query.targetAllergen || "";
+    console.log(targetAllergen);
+
+
+    
 
     const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
     const apiOrigin = new URL(apiUrl).origin;
@@ -78,20 +119,86 @@ app.get('/mealplan', async (req, res) => {
         return res.status(400).json({ error: 'Invalid API endpoint' });
     }
 
+    
+
     try {
-        const response = await axios.get(apiUrl, {
-            params: {
-                apiKey: process.env.SPOONACULAR_API_KEY,
-                targetCalories,
-                timeFrame: 'week',
-            },
-        });
-        res.json(response.data);
+      const response = await axios.get(apiUrl, {
+        params: {
+          apiKey: process.env.SPOONACULAR_API_KEY,
+          targetCalories: targetCalories,
+          diet: targetDiet,
+          exclude: targetAllergen,
+          timeFrame: 'week'
+        }
+      });
+      res.json(response.data);
     } catch (error) {
-        console.error(error.message);
-        res.status(500).json({ error: 'Failed to fetch meal plans' });
+      console.error('Error fetching meal plan:', error.message);
+      res.status(500).json({ error: 'Error fetching meal plan.' });
     }
-});
+  }
+);
+
+app.get(    
+  '/daymealplan',
+  [
+    // Validate 
+    query('targetCalories').custom((value) => {
+  const num = Number(value);
+  if (isNaN(num) || num < 1 || num > 10000) {     // pre validation not using req or res to check using middleware recommand for login
+    throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
+  }
+  return true;
+}),
+    //  sanitize targetDiet and targetAllergen
+    query('targetDiet').optional().trim().escape(),
+    
+    query('targetAllergen').optional().trim().escape()
+  ],
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array()[0].msg });
+    }
+
+    // Extract parameters
+    const targetCalories = parseInt(req.query.targetCalories, 10);
+   console.log(targetCalories);
+    const targetDiet = req.query.targetDiet || "";
+    //console.log(targetDiet);
+    const targetAllergen = req.query.targetAllergen || "";
+    console.log(targetAllergen);
+
+
+    
+
+    const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
+    const apiOrigin = new URL(apiUrl).origin;
+
+    if (!allowedDomains.includes(apiOrigin)) {
+        return res.status(400).json({ error: 'Invalid API endpoint' });
+    }
+
+    
+
+    try {
+      const response = await axios.get(apiUrl, {
+        params: {
+          apiKey: process.env.SPOONACULAR_API_KEY,
+          targetCalories: targetCalories,
+          diet: targetDiet,
+          exclude: targetAllergen,
+          timeFrame: 'day'
+        }
+      });
+      res.json(response.data);
+    } catch (error) {
+      console.error('Error fetching meal plan:', error.message);
+      res.status(500).json({ error: 'Error fetching meal plan.' });
+    }
+  }
+);
 
 // Forgot Password Endpoint
 app.post('/forgotpassword', forgotPasswordLimiter, async (req, res) => {

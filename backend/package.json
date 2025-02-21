@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "devStart": "nodemon index.js",
+    "test": "jest",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +18,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.9",
     "pg": "^8.13.1"
   },
   "devDependencies": {

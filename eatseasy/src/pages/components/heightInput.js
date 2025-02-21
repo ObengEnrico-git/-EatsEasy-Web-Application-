@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from "react";
 import FloatingLabelInput from "./componentStyles/FloatingLabelInput";
-import UnitSelector from "./componentStyles/radioSelector";
+import {
+  FormControl,
+  
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+} from "@mui/material";
 import "../../styles/BmiCalculator.css";
 
-export function HeightInput() {
-  const [unit, setUnit] = useState("cm");
+
+export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChange, label    }) {
+  // We'll use "cm" and "ft" as units
+  
   const [measurements, setMeasurements] = useState("");
   const [error, setError] = useState("");
 
+  const measurementsOptions = [
+    { value: "cm", label: "Centimeters (cm)" },
+    { value: "ft", label: "Feet (ft)" },
+  ];
+
   const handleUnitChange = (e) => {
-    setUnit(e.target.value);
-    setError(""); 
-  };
+    const newUnit = e.target.value;
+    
+    setError("");
+     if (UnitChange) {
+      UnitChange(newUnit); 
+  };}
 
   const handleMeasurementsChange = (e) => {
     const inputValue = e.target.value;
@@ -28,7 +44,6 @@ export function HeightInput() {
   const pasteChecks = (e) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData("Text");
-
     if (!isNaN(pastedText) && pastedText.trim() !== "") {
       e.target.value = pastedText;
       setMeasurements(pastedText);
@@ -39,65 +54,80 @@ export function HeightInput() {
     }
   };
 
-  // Convert between cm <-> in whenever unit changes
+  // Convert between cm and ft:
+  // If converting from cm to ft, divide by 30.48.
+  // If converting from ft to cm, multiply by 30.48.
   const convertMeasurements = (value, toUnit) => {
     const numericValue = parseFloat(value);
-    if (toUnit === "in") {
-      return (numericValue / 2.54).toFixed(2);  // Correct cm to in conversion
+    if (toUnit === "ft") {
+      return (numericValue / 30.48).toFixed(2);
     } else {
-      return (numericValue * 2.54).toFixed(2);  // Correct in to cm conversion
+      return (numericValue * 30.48).toFixed(2);
     }
   };
 
+  // When the unit changes, convert the current measurement accordingly.
   useEffect(() => {
-    setMeasurements((prevMeasurements) => {
-      if (prevMeasurements !== "") {
-        return convertMeasurements(prevMeasurements, unit);
+    setMeasurements((prev) => {
+      if (prev !== "") {
+        return convertMeasurements(prev, unit);
       }
-      return prevMeasurements;
+      return prev;
     });
   }, [unit]);
 
-  const measurementsOptions = [
-    { value: "cm", label: "Centimeters (cm)" },
-    { value: "in", label: "Inches (in)" },
-  ];
+  // Lift state: notify the parent when measurements change.
+  useEffect(() => {
+    if (onHeightChange) {
+      onHeightChange(measurements);
+      console.log(measurements);
+    }
+  }, [measurements, onHeightChange]);
 
   return (
     <div className="relative">
-      <UnitSelector 
-        title="Choose a Unit:" 
-        options={measurementsOptions} 
-        selectedUnit={unit} 
-        onChange={handleUnitChange} 
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        {/* FloatingLabelInput for height value */}
+        <FloatingLabelInput
+          id="heightInput"
+          label={label}
+          type="number"
+          value={measurements}
+          onChange={handleMeasurementsChange}
+          onPaste={pasteChecks}
+          onKeyDown={(e) => {
+            if (["e", "E", "+", "-"].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
+          unit={unit}
+          required
+          min="0"
+          error={error}
+          disabled={disabled}
+        />
 
-      {/* Floating Label Input */}
-      <FloatingLabelInput
-        id="measurements"
-        label="Enter measurements"
-        type="number"
-        value={measurements}
-        onChange={handleMeasurementsChange}
-        onPaste={pasteChecks}
-        onKeyDown={(e) => {
-          if (["e", "E", "+", "-"].includes(e.key)) {
-            e.preventDefault();
-          }
-        }}
-        unit={unit}
-        required
-        min="0"
-        error={error}
-        helperText={error}
-      />
-
-      {/* Error message for screen readers */}
-      {error && (
-        <span id="measurements-error-text" style={{ color: "red" }} aria-live="assertive">
-          {error}
-        </span>
-      )}
+        {/* Material UI radio buttons for unit selection */}
+        <FormControl component="fieldset" disabled={disabled}>
+          <RadioGroup
+            row
+            name="heightUnit"
+            value={unit}
+            onChange={handleUnitChange}
+          >
+            {measurementsOptions.map((option) => (
+              <FormControlLabel
+                key={option.value}
+                value={option.value}
+                control={<Radio color="primary" />}
+                label={option.label}
+                className="text-sm font-medium text-gray-900 dark:text-gray-300"
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
+      </div>
+      
     </div>
   );
 }
