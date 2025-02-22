@@ -18,6 +18,10 @@ const pool = new Pool({
 const testConnection = async () => {
     try {
         const res = await pool.query('SELECT NOW()');
+        if (!res.rows || res.rows.length === 0) {
+            console.error('Unexpected database response:', res);
+            return false;
+        }
         console.log('Database connected successfully:', res.rows[0]);
         return true;
     } catch (err) {
@@ -25,6 +29,7 @@ const testConnection = async () => {
         return false;
     }
 };
+
 
 // Add a function to close the pool
 const closePool = async () => {

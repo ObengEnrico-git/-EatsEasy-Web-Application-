@@ -2,11 +2,20 @@ const request = require('supertest');
 const axios = require('axios');
 const app = require('../index');
 const db = require('../database');
+const auth = require('../auth');
 
-// Mock axios
+// Mock axios and auth module
 jest.mock('axios');
+jest.mock('../auth');
 
 describe('Test Meal Plan API', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        // Only mock console.error in CI/test environment
+        if (process.env.NODE_ENV === 'test') {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+        }
+    });
 
     // Test #1: Ensure the server responds to the `/` route correctly
     it('responds to the base route ("/") successfully', async () => {
@@ -54,11 +63,80 @@ describe('Test Meal Plan API', () => {
         expect(response.body.week.monday.meals[0]).toHaveProperty('title');
     });
 
-    //TODO: Add database connection test check
+    // Test #4: Test register endpoint
+    it('successfully registers a new user', async () => {
+        const mockUser = {
+            username: 'testuser',
+            password: 'password123',
+            email: 'test@test.com'
+        };
+
+        // Mock successful registration
+        auth.registerUser.mockResolvedValueOnce({
+            user_id: 1,
+            username: mockUser.username,
+            email: mockUser.email
+        });
+
+        const response = await request(app)
+            .post('/register')
+            .send(mockUser);
+
+        expect(response.statusCode).toBe(201);
+        expect(response.body).toHaveProperty('message', 'User registered successfully');
+        expect(response.body).toHaveProperty('user');
+    });
+
+    // Test #5: Test login endpoint
+    it('successfully logs in a user', async () => {
+        const mockCredentials = {
+            email: 'test@test.com',
+            password: 'password123'
+        };
+
+        // Mock successful login
+        auth.loginUser.mockResolvedValueOnce({
+            user_id: 1,
+            email: mockCredentials.email,
+            token: 'mock-jwt-token'
+        });
+
+        const response = await request(app)
+            .post('/login')
+            .send(mockCredentials);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('message', 'Login successful');
+        expect(response.body).toHaveProperty('user');
+        expect(response.body.user).toHaveProperty('token');
+    });
+
+    // Test #6: Test forgot password endpoint
+    it('successfully changes password', async () => {
+        const mockData = {
+            username: 'testuser',
+            email: 'test@test.com',
+            currentPassword: 'oldpassword',
+            newPassword: 'newpassword123'
+        };
+
+        // Mock successful password change
+        auth.forgetPassword.mockResolvedValueOnce({
+            message: 'Password updated successfully'
+        });
+
+        const response = await request(app)
+            .post('/forgotpassword')
+            .send(mockData);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('message', 'Password updated successfully');
+    });
 
     // Clean up mocks after each test
     afterEach(() => {
         jest.resetAllMocks();
+        console.error.mockRestore();
     });
 
     // Close the database connection

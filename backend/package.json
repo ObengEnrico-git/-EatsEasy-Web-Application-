@@ -28,5 +28,8 @@
     "@types/jsonwebtoken": "^9.0.8",
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
+  },
+  "jest": {
+    "setupFilesAfterEnv": ["<rootDir>/__test__/jest.setup.js"]
   }
 }
