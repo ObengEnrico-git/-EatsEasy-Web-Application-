@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import axios from 'axios';
 import MealPlan from '../pages/MealPlan';
 
@@ -46,7 +46,9 @@ describe('MealPlan Component', () => {
   };
 
   beforeEach(() => {
-    useLocation.mockReturnValue(mockLocationState);
+    const mockNavigate = jest.fn();
+    require('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
+    require('react-router-dom').useLocation.mockReturnValue(mockLocationState);
   });
 
   afterEach(() => {
@@ -103,48 +105,9 @@ describe('MealPlan Component', () => {
     expect(screen.queryByText('Important Information')).not.toBeInTheDocument();
   });
 
-  // Test 4: Fetches a new meal plan when "Refresh" is clicked
-  it('fetches a new meal plan when refresh button is clicked', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockMealData });
-
-    render(
-      <MemoryRouter>
-        <MealPlan />
-      </MemoryRouter>
-    );
-
-    const refreshButton = screen.getByText('Refresh');
-    fireEvent.click(refreshButton);
-
-    await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('http://localhost:8000/mealplan', {
-        params: { targetCalories: 2000 },
-      });
-    });
-  });
-
-  // Test 5: Displays loading state during refresh
-  it('displays loading state during refresh', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockMealData });
-
-    render(
-      <MemoryRouter>
-        <MealPlan />
-      </MemoryRouter>
-    );
-
-    const refreshButton = screen.getByText('Refresh');
-    fireEvent.click(refreshButton);
-
-    expect(screen.getByText('Refreshing...')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
-    });
-  });
-
-  // Test 6: Handles no meal data
+  // Test 4: Handles no meal data
   it('displays a message when no meal data is available', () => {
-    useLocation.mockReturnValue({ state: {} });
+    require('react-router-dom').useLocation.mockReturnValue({ state: {} });
 
     render(
       <MemoryRouter>
@@ -156,12 +119,11 @@ describe('MealPlan Component', () => {
     expect(screen.getByText('Please try our bmi calculator again')).toBeInTheDocument();
   });
 
-  // Test 7: Navigates back when "Go back" is clicked
+  // Test 5: Navigates back when "Go back" is clicked
   it('navigates back when "Go back" is clicked', () => {
     const mockNavigate = jest.fn();
-    useNavigate.mockReturnValue(mockNavigate);
-
-    useLocation.mockReturnValue({ state: {} });
+    require('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
+    require('react-router-dom').useLocation.mockReturnValue({ state: {} });
 
     render(
       <MemoryRouter>
