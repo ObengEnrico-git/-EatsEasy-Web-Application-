@@ -21,6 +21,7 @@ import NavBar from '../../../NavBar';
 import axios from 'axios';
 import { useState } from 'react';
 import Snackbar from '@mui/material/Snackbar';
+import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -41,6 +42,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
 }));
 
 export default function SignInCard() {
+  const navigate = useNavigate();
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
@@ -83,12 +85,22 @@ export default function SignInCard() {
     };
 
     try {
-      await axios.post('http://localhost:8000/login', formData);
+      const response = await axios.post('http://localhost:8000/login', formData);
+      
+      // Store the token in localStorage
+      localStorage.setItem('token', response.data.user.token);
+      
       setAlertInfo({
         show: true,
         type: 'success',
         message: 'Successfully logged in'
       });
+
+      // Navigate to user profile after successful login
+      // This is a temporary route to test the profile page
+      // TODO: Redirect to either user profile or BMI calculator? 
+      navigate('/userprofile');
+      
     } catch (error) {
       setAlertInfo({
         show: true,

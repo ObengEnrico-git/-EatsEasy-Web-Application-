@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import '../styles/NavBar.css';
-
+import { useNavigate } from 'react-router-dom';
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const navigate = useNavigate();
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -24,6 +24,7 @@ const NavBar = () => {
           src="/logo192.png"
           alt="EatsEasy Logo"
           className="navBar-logo-image"
+          onClick={() => navigate('/')}
         />
       </div>
 
@@ -32,7 +33,8 @@ const NavBar = () => {
           <li><a href="/">Home</a></li>
           <li><a href="/Bmi">Bmi Calculator</a></li>
           <li><a href="/mealplan">Meal Plan</a></li>
-          <li><a href="/Login">Login Page</a></li>
+          <li><a href="/Login">Login</a></li>
+          <li><a href="/userProfile">Profile</a></li>
         </ul>
       </div>
     </nav>
