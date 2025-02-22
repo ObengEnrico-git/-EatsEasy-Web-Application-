@@ -9,7 +9,6 @@ import axios from "axios";
 import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
-
 import {
   FormControl,
   FormLabel,
@@ -17,13 +16,8 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-
 import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput";
-
 import { styled } from "@mui/material/styles";
-
-
-
 import WeightInput from "./components/weightInput";
 import HeightInput from "./components/heightInput";
 
@@ -52,8 +46,6 @@ const interestOptions = [
   { value: "Low FODMAP", label: "Low FODMAP" },
   { value: "Whole30", label: "Whole30" },
 ];
-
-
 
 const BmiCalculator = () => {
   const navigate = useNavigate();
