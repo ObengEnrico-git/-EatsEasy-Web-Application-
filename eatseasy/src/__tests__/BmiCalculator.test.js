@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import BmiCalculator from "../pages/BmiCalculator";
-import MealPlan from "../pages/MealPlan";
 
 beforeEach(() => {
   localStorage.clear();
@@ -207,6 +206,4 @@ describe("BmiCalculator Component", () => {
 
     screen.debug();
   });
-
- 
 });

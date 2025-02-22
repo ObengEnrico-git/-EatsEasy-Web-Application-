@@ -15,7 +15,21 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
+const allowedDiets = [
+  'Gluten Free', 
+  'Ketogenic', 
+  'Vegetarian', 
+  'Lacto-Vegetarian', 
+  'Ovo-Vegetarian', 
+  'Vegan', 
+  'Pescetarian', 
+  'Paleo', 
+  'Primal', 
+  'Low FODMAP', 
+  'Whole30'
+];
 
+const allowedAllergens = ['Dairy', 'Egg', 'Gluten', 'Grain', 'Peanut', 'Seafood', 'Sesame', 'Shellfish', 'Soy', 'Sulfite', 'Tree Nut', 'Wheat'];
 
 // so this function only allowed for every 15 minutes only allows 10 requests
 //error status code: 429
@@ -219,64 +233,77 @@ app.get(
   }
 );
 
-app.get(    
-  '/daymealplan',
+app.get(
+'/daymealplan',
   [
-    // Validate 
-    query('targetCalories').custom((value) => {
-  const num = Number(value);
-  if (isNaN(num) || num < 1 || num > 10000) {     // pre validation not using req or res to check using middleware recommand for login
-    throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
-  }
-  return true;
-}),
-    //  sanitize targetDiet and targetAllergen
-    query('targetDiet').optional().trim().escape(),
-    
-    query('targetAllergen').optional().trim().escape()
+      // Validate 
+      query('targetCalories').custom((value) => {
+          const num = Number(value);
+          if (isNaN(num) || num < 1 || num > 10000) { // pre validation not using req or res to check using middleware recommand for login
+              throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
+          }
+          return true;
+      }),
+      //  sanitize targetDiet and targetAllergen
+      query('targetDiet').optional().trim().escape(),
+
+      query('targetAllergen').optional().trim().escape()
   ],
   async (req, res) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ error: errors.array()[0].msg });
-    }
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+          return res.status(400).json({
+              error: errors.array()[0].msg
+          });
+      }
 
-    // Extract parameters
-    const targetCalories = parseInt(req.query.targetCalories, 10);
-   console.log(targetCalories);
-    const targetDiet = req.query.targetDiet || "";
-    //console.log(targetDiet);
-    const targetAllergen = req.query.targetAllergen || "";
-    console.log(targetAllergen);
+      // Extract parameters
+      const targetCalories = parseInt(req.query.targetCalories, 10);
+      console.log(targetCalories);
+      const targetDiet = req.query.targetDiet || "";
+      //console.log(targetDiet);
+      const targetAllergen = req.query.targetAllergen || "";
+      console.log(targetAllergen);
 
+      const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
+      const apiOrigin = new URL(apiUrl).origin;
 
-    
+      if (!allowedDomains.includes(apiOrigin)) {
+          return res.status(400).json({
+              error: 'Invalid API endpoint'
+          });
+      }
 
-    const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
-    const apiOrigin = new URL(apiUrl).origin;
+      if (targetDiet && !allowedDiets.includes(targetDiet)) {
+          return res.status(400).json({
+              error: 'Invalid targetDiet'
+          });
+      }
 
-    if (!allowedDomains.includes(apiOrigin)) {
-        return res.status(400).json({ error: 'Invalid API endpoint' });
-    }
+      if (targetAllergen && !allowedAllergens.includes(targetAllergen)) {
+          return res.status(400).json({
+              error: 'Invalid targetAllergen'
+          });
+      }
 
-    
-
-    try {
-      const response = await axios.get(apiUrl, {
-        params: {
-          apiKey: process.env.SPOONACULAR_API_KEY,
-          targetCalories: targetCalories,
-          diet: targetDiet,
-          exclude: targetAllergen,
-          timeFrame: 'day'
-        }
-      });
-      res.json(response.data);
-    } catch (error) {
-      console.error('Error fetching meal plan:', error.message);
-      res.status(500).json({ error: 'Error fetching meal plan.' });
-    }
+      try {
+          const response = await axios.get(apiUrl, {
+              params: {
+                  apiKey: process.env.SPOONACULAR_API_KEY,
+                  targetCalories: targetCalories,
+                  diet: targetDiet,
+                  exclude: targetAllergen,
+                  timeFrame: 'day'
+              }
+          });
+          res.json(response.data);
+      } catch (error) {
+          console.error('Error fetching meal plan:', error.message);
+          res.status(500).json({
+              error: 'Error fetching meal plan.'
+          });
+      }
   }
 );
 

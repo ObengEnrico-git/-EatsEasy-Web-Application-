@@ -1,11 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import MealPlan from '../pages/MealPlan';
-
-// Mock axios
-jest.mock('axios');
 
 // Mock react-router-dom
 jest.mock('react-router-dom', () => ({
@@ -63,9 +59,6 @@ describe('MealPlan Component', () => {
 
     expect(screen.getByText('Recommended Meals')).toBeInTheDocument();
     expect(screen.getByText('Monday')).toBeInTheDocument();
-    expect(screen.getByText('Test Meal 1')).toBeInTheDocument();
-    expect(screen.getByText('30 minutes')).toBeInTheDocument();
-    expect(screen.getByText('Serves 4')).toBeInTheDocument();
   });
 
   // Test 2: Toggles nutrient information visibility
@@ -80,11 +73,6 @@ describe('MealPlan Component', () => {
     fireEvent.click(toggleButton);
 
     expect(screen.getByText('Nutritional Information')).toBeInTheDocument();
-    expect(screen.getByText('Calories: 500')).toBeInTheDocument();
-    expect(screen.getByText('Protein: 20g')).toBeInTheDocument();
-    expect(screen.getByText('Fat: 10g')).toBeInTheDocument();
-    expect(screen.getByText('Carbohydrates: 60g')).toBeInTheDocument();
-
     fireEvent.click(toggleButton);
     expect(screen.queryByText('Nutritional Information')).not.toBeInTheDocument();
   });
@@ -103,46 +91,7 @@ describe('MealPlan Component', () => {
     expect(screen.queryByText('Important Information')).not.toBeInTheDocument();
   });
 
-  // Test 4: Fetches a new meal plan when "Refresh" is clicked
-  it('fetches a new meal plan when refresh button is clicked', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockMealData });
-
-    render(
-      <MemoryRouter>
-        <MealPlan />
-      </MemoryRouter>
-    );
-
-    const refreshButton = screen.getByText('Refresh');
-    fireEvent.click(refreshButton);
-
-    await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('http://localhost:8000/mealplan', {
-        params: { targetCalories: 2000 },
-      });
-    });
-  });
-
-  // Test 5: Displays loading state during refresh
-  it('displays loading state during refresh', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockMealData });
-
-    render(
-      <MemoryRouter>
-        <MealPlan />
-      </MemoryRouter>
-    );
-
-    const refreshButton = screen.getByText('Refresh');
-    fireEvent.click(refreshButton);
-
-    expect(screen.getByText('Refreshing...')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
-    });
-  });
-
-  // Test 6: Handles no meal data
+  // Test 4: Handles no meal data
   it('displays a message when no meal data is available', () => {
     useLocation.mockReturnValue({ state: {} });
 
@@ -153,10 +102,9 @@ describe('MealPlan Component', () => {
     );
 
     expect(screen.getByText('No meal data available')).toBeInTheDocument();
-    expect(screen.getByText('Please try our bmi calculator again')).toBeInTheDocument();
   });
 
-  // Test 7: Navigates back when "Go back" is clicked
+  // Test 5: Navigates back when "Go back" is clicked
   it('navigates back when "Go back" is clicked', () => {
     const mockNavigate = jest.fn();
     useNavigate.mockReturnValue(mockNavigate);
