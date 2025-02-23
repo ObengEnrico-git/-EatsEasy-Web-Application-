@@ -10,9 +10,9 @@ import {
 import "../../styles/BmiCalculator.css";
 
 
-export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChange, label    }) {
-  // We'll use "cm" and "ft" as units
-  
+export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange, label }) {
+  const [feet, setFeet] = useState("");
+  const [inches, setInches] = useState("");
   const [measurements, setMeasurements] = useState("");
   const [error, setError] = useState("");
 
@@ -23,19 +23,30 @@ export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChan
 
   const handleUnitChange = (e) => {
     const newUnit = e.target.value;
-    
     setError("");
-     if (UnitChange) {
-      UnitChange(newUnit); 
-  };}
+    if (UnitChange) {
+      UnitChange(newUnit);
+    }
+  };
 
-  const handleMeasurementsChange = (e) => {
-    const inputValue = e.target.value;
-    if (!isNaN(inputValue) && inputValue.trim() !== "") {
-      setMeasurements(inputValue);
+  // Convert feet and inches to total height value
+  useEffect(() => {
+    if (unit === "ft") {
+      const totalHeight = feet && inches ? parseFloat(feet) + parseFloat(inches) / 12 : "";
+      setMeasurements(totalHeight);
+      if (onHeightChange) {
+        onHeightChange(totalHeight);
+      }
+    }
+  }, [feet, inches, unit, onHeightChange]);
+
+  const handleNumberInput = (e, setter) => {
+    const value = e.target.value;
+    if (!isNaN(value) && value.trim() !== "") {
+      setter(value);
       setError("");
     } else {
-      setMeasurements("");
+      setter("");
       setError("Please enter a valid number.");
     }
   };
@@ -86,27 +97,66 @@ export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChan
   return (
     <div className="relative">
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* FloatingLabelInput for height value */}
-        <FloatingLabelInput
-          id="heightInput"
-          label={label}
-          type="number"
-          value={measurements}
-          onChange={handleMeasurementsChange}
-          onPaste={pasteChecks}
-          onKeyDown={(e) => {
-            if (["e", "E", "+", "-"].includes(e.key)) {
-              e.preventDefault();
-            }
-          }}
-          unit={unit}
-          required
-          min="0"
-          error={error}
-          disabled={disabled}
-        />
+        {unit === "cm" ? (
+          <FloatingLabelInput
+            id="heightInput"
+            label={label}
+            type="number"
+            value={measurements}
+            onChange={(e) => {
+              setMeasurements(e.target.value);
+              onHeightChange(e.target.value);
+            }}
+            onPaste={pasteChecks}
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            unit={unit}
+            required
+            min="0"
+            error={error}
+            disabled={disabled}
+          />
+        ) : (
+          <div style={{ display: "flex", gap: "1rem", flex: 1 }}>
+            <FloatingLabelInput
+              id="feetInput"
+              label="Feet"
+              type="number"
+              value={feet}
+              onChange={(e) => handleNumberInput(e, setFeet)}
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              required
+              min="0"
+              error={error}
+              disabled={disabled}
+            />
+            <FloatingLabelInput
+              id="inchesInput"
+              label="Inches"
+              type="number"
+              value={inches}
+              onChange={(e) => handleNumberInput(e, setInches)}
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              required
+              min="0"
+              max="11"
+              error={error}
+              disabled={disabled}
+            />
+          </div>
+        )}
 
-        {/* Material UI radio buttons for unit selection */}
         <FormControl component="fieldset" disabled={disabled}>
           <RadioGroup
             row
@@ -126,7 +176,6 @@ export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChan
           </RadioGroup>
         </FormControl>
       </div>
-      
     </div>
   );
 }

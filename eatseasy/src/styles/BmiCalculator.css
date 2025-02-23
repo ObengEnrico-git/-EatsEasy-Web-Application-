@@ -95,9 +95,9 @@ button {
     font-size: 1rem;
 }
 
-button:hover {
+/* button:hover {
     background-color: #2f855a;
-}
+} */
 
 /* Popup overlay */
 .bmiCalculator-popup-overlay {

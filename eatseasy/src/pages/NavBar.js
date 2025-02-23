@@ -29,6 +29,9 @@ const NavBar = () => {
           src="/logo192.png"
           alt="EatsEasy Logo"
           className="navBar-logo-image"
+          onClick={() => {
+            window.location.href = "/";
+          }}
         />
       </div>
 

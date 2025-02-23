@@ -1,0 +1,13 @@
+stages:
+  - sync
+
+sync_to_github:
+  stage: sync
+  only:
+    - main
+  script:
+    - apt-get update && apt-get install -y git
+    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "gitlab@example.com"
+    - git remote set-url github https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git || git remote add github https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git
+    - git push github main
