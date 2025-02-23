@@ -33,6 +33,7 @@ const UserProfile = () => {
   const [showLogoutAlert, setShowLogoutAlert] = useState(false)
 
   useEffect(() => {
+    // Check if the user is authenticated
     const checkAuth = async () => {
       const token = localStorage.getItem('token')
       if (!token) {
@@ -41,77 +42,131 @@ const UserProfile = () => {
         return
       }
 
+      // Fetch the user's profile data
+      // If the user is not authenticated, set the isAuthenticated state to false
+
       try {
         const response = await fetch('http://localhost:8000/user/profile', {
           headers: {
+            // If the user is authenticated, set the isAuthenticated state to true
+            // Authorization header is set with the token
+            // Bearer is the prefix for the token
             'Authorization': `Bearer ${token}`
           }
         })
 
+        // If the user is not authenticated, set the isAuthenticated state to false
         if (!response.ok) {
           throw new Error('Authentication failed')
         }
 
+        // If the user is authenticated, set the isAuthenticated state to true
         const userData = await response.json()
+        // Set the user's profile data to the user state
         setUser(userData)
+        // Set the isAuthenticated state to true
         setIsAuthenticated(true)
       } catch (error) {
+        // If there is an error, remove the token from the local storage
+        // Set the isAuthenticated state to false
         console.error('Auth error:', error)
         localStorage.removeItem('token')
         setIsAuthenticated(false)
       } finally {
+        // Finally, set the isLoading state to false
         setIsLoading(false)
       }
     }
 
+    // Check if the user is authenticated
     checkAuth()
   }, [])
 
   const handleLogout = async () => {
+    // Set the openBackdrop state to true
     setOpenBackdrop(true)
     
     // Simulate loading for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
+
+
+    // Remove the token from the local storage
     localStorage.removeItem('token')
+    // Set the openBackdrop state to false
     setOpenBackdrop(false)
+    // Set the showLogoutAlert state to true
     setShowLogoutAlert(true)
     
     // Navigate after a brief delay to show the alert
     setTimeout(() => {
+      // Navigate to the login page
       navigate('/login')
+      // 1000 milliseconds = 1 second
     }, 1000)
   }
 
   const handleRecipeClick = (recipeId) => {
+    // Navigate to the recipe page
+    // recipeId is the id of the recipe to navigate to
+    // If the user clicks on a recipe, the user will be navigated to the recipe page
+    // The /recipe/:id is the route for the recipe page which is not implemented yet
     navigate(`/recipe/${recipeId}`)
   }
 
   useEffect(() => {
     const fetchData = async () => {
+      // token is the token from the local storage and we are using it to fetch the users token
       const token = localStorage.getItem('token')
+      // Set the isLoading state to true
       setIsLoading(true)
       try {
+        // mealPlansRes, favoritesRes, bmiRes are the responses from the meal plans, favorites and bmi data
+        // All these endpoints are not implemented yet
+        // TODO: Implement the endpoints within index.js
+        // Could make a new file for the process of fetching the data (like how we have auth.js for the authentication process)
+
         const [mealPlansRes, favoritesRes, bmiRes] = await Promise.all([
+          // mealPlansRes is the response from the meal plans data
+          // The endpoint is not implemented yet
+          // TODO: Implement the endpoint within index.js
           fetch('http://localhost:8000/user/meal-plans', {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
+          // favoritesRes is the response from the favorites data
+          // The endpoint is not implemented yet
+          // TODO: Implement the endpoint within index.js
           fetch('http://localhost:8000/user/favorite-recipes', {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
+          // bmiRes is the response from the bmi data
+          // The endpoint is not implemented yet
+          // TODO: Implement the endpoint within index.js
           fetch('http://localhost:8000/user/bmi-data', {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ])
 
+        // mealPlans, favorites, bmi are the meal plans, favorites and bmi data
         const [mealPlans, favorites, bmi] = await Promise.all([
+          // mealPlans is the meal plans data
+          // The response is not implemented yet
+          // TODO: Implement the response within index.js
           mealPlansRes.json(),
+          // favorites is the favorites data
+          // The response is not implemented yet
+          // TODO: Implement the response within index.js
           favoritesRes.json(),
+          // bmi is the bmi data
+          // The response is not implemented yet
+          // TODO: Implement the response within index.js
           bmiRes.json()
         ])
 
+        // Set the meal plans to the meal plans state
         setYourMealPlans(mealPlans)
+        // Set the favorites to the favorites state
         setFavoriteRecipes(favorites)
+        // Set the bmi to the bmi state
         setBmiData(bmi)
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -120,6 +175,7 @@ const UserProfile = () => {
       }
     }
 
+    // If the user is authenticated, fetch the data
     if (isAuthenticated) {
       fetchData()
     }
@@ -136,7 +192,8 @@ const UserProfile = () => {
     )
   }
 
-  if (!isAuthenticated) {
+  // If the user is not authenticated, return the NotLoggedIn component
+  if (!isAuthenticated) { 
     return <NotLoggedIn />
   }
 
@@ -213,6 +270,7 @@ const UserProfile = () => {
             <Typography>Loading...</Typography>
           </Box>
         ) : (
+          // If the data is loaded, return the UserBmi, FavoriteMealPlans and FavoriteRecipes components
           <>
             <UserBmi bmiData={bmiData} />
             <FavoriteMealPlans 
