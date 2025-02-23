@@ -97,7 +97,7 @@ const BmiCalculator = () => {
   // Add at the top with your other state variables
   const [selectedAllergens, setSelectedAllergens] = usePersistedState(
     "selectedAllergens",
-    ""
+    []
   );
 
   const theme = useTheme();
@@ -108,6 +108,13 @@ const BmiCalculator = () => {
       setDietOptions([]);
     }
   }, [diet, setDietOptions]);
+
+  // Add this useEffect to ensure selectedAllergens is always an array
+  useEffect(() => {
+    if (!Array.isArray(selectedAllergens)) {
+      setSelectedAllergens([]);
+    }
+  }, [selectedAllergens, setSelectedAllergens]);
 
   // Handler to toggle an allergen on/off
   const handleAllergenSelect = (allergen) => {
