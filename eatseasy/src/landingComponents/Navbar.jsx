@@ -35,7 +35,8 @@ const Navbar = () => {
                 <ul className='pt-12 space-y-2 p-4'>
                     <li className='text-lg font-bold p-4 border-b-2'>Home</li>
                     <li className='text-lg font-bold p-4 border-b-2'>Log in</li>
-                    <li className='text-lg font-bold p-4'>Sign up</li>
+                    <li className='text-lg font-bold p-4 border-b-2'>Sign up</li>
+                    <li className='text-lg font-bold p-4'>Profile</li>
                 </ul>
             </div>
         </div>

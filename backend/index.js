@@ -7,6 +7,7 @@ const auth = require('./auth');
 const rateLimit = require('express-rate-limit');
 const { query, validationResult } = require("express-validator"); 
 
+const jwt = require('jsonwebtoken');
 
 dotenv.config();
 
@@ -14,7 +15,21 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
+const allowedDiets = [
+  'Gluten Free', 
+  'Ketogenic', 
+  'Vegetarian', 
+  'Lacto-Vegetarian', 
+  'Ovo-Vegetarian', 
+  'Vegan', 
+  'Pescetarian', 
+  'Paleo', 
+  'Primal', 
+  'Low FODMAP', 
+  'Whole30'
+];
 
+const allowedAllergens = ['Dairy', 'Egg', 'Gluten', 'Grain', 'Peanut', 'Seafood', 'Sesame', 'Shellfish', 'Soy', 'Sulfite', 'Tree Nut', 'Wheat'];
 
 // so this function only allowed for every 15 minutes only allows 10 requests
 //error status code: 429
@@ -37,6 +52,85 @@ const forgotPasswordLimiter = rateLimit({
     max: 5, // limit each IP to 5 requests per windowMs (1 hour)
     message: { error: 'Too many password reset attempts. Please try again in an hour.' }
 });
+
+// Middleware to authenticate the user
+// This middleware is used to authenticate the user and check if they are logged in
+// If they are not logged in, they will be redirected to the login page
+// If they are logged in, they will be able to access the protected routes 
+// Parameters: req is the request object, res is the response object, next is the next middleware function
+
+// Q: what is next?
+// A: next is the next middleware function
+
+// Q: what is a middleware function?
+// A: a middleware function is a function that has access to the request object, the response object and the next middleware function
+
+// Q: what is the request object?
+// A: the request object is the object that contains the request data
+
+const authenticateToken = (req, res, next) => {
+  try {
+    // Gets the token from the authorisation header
+    const authHeader = req.headers['authorization']
+
+    // Gets the token from the authorisation header
+    const token = authHeader && authHeader.split(' ')[1]
+
+    // If the token is not provided, return a 401 error
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' })
+    }
+
+    // Adds token format validation
+    // This is done to prevent any invalid tokens from being used
+    // We do this because we want to ensure that the token is valid
+    // This is done by checking if the token matches the regex
+    // Why use regex?
+    // A: regex is used to check if the token matches the format of a JWT token
+    // What is a JWT token?
+    // A: a JWT token is a token that is used to authenticate the user
+    // What is a JWT token format?
+    // A: a JWT token format is a format that is used to authenticate the user
+    const tokenRegex = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/
+
+    // If the token is not valid, return a 401 error
+    if (!tokenRegex.test(token)) {
+      return res.status(401).json({ error: 'Invalid token format' })
+    }
+
+    // Verifies the token
+    // This is done to ensure that the token is valid
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      // If the token is expired, return a 401 error
+      if (err) {
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({ error: 'Token expired' })
+        }
+
+        // If the token is invalid, return a 403 error
+        // This is done to prevent any invalid tokens from being used
+        return res.status(403).json({ error: 'Invalid token' })
+      }
+
+      // Don't expose sensitive user data
+      // This is done to prevent any sensitive data from being exposed
+      req.user = {
+        user_id: user.user_id,
+        email: user.email
+      }
+
+      // Calls the next middleware
+      // This is done to allow the user to access the protected routes
+      next()
+    })
+  } catch (error) {
+    // If there is an error, return a 500 error
+    console.error('Authentication error:', error)
+
+    // Sends the error back to the frontend
+    return res.status(500).json({ error: 'Authentication failed' })
+  }
+}
 
 app.get('/', (req, res) => {
     res.send('Backend running on http://localhost:8000');
@@ -139,64 +233,77 @@ app.get(
   }
 );
 
-app.get(    
-  '/daymealplan',
+app.get(
+'/daymealplan',
   [
-    // Validate 
-    query('targetCalories').custom((value) => {
-  const num = Number(value);
-  if (isNaN(num) || num < 1 || num > 10000) {     // pre validation not using req or res to check using middleware recommand for login
-    throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
-  }
-  return true;
-}),
-    //  sanitize targetDiet and targetAllergen
-    query('targetDiet').optional().trim().escape(),
-    
-    query('targetAllergen').optional().trim().escape()
+      // Validate 
+      query('targetCalories').custom((value) => {
+          const num = Number(value);
+          if (isNaN(num) || num < 1 || num > 10000) { // pre validation not using req or res to check using middleware recommand for login
+              throw new Error('Invalid targetCalories value. Please provide a number between 1 and 10000.');
+          }
+          return true;
+      }),
+      //  sanitize targetDiet and targetAllergen
+      query('targetDiet').optional().trim().escape(),
+
+      query('targetAllergen').optional().trim().escape()
   ],
   async (req, res) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ error: errors.array()[0].msg });
-    }
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+          return res.status(400).json({
+              error: errors.array()[0].msg
+          });
+      }
 
-    // Extract parameters
-    const targetCalories = parseInt(req.query.targetCalories, 10);
-   console.log(targetCalories);
-    const targetDiet = req.query.targetDiet || "";
-    //console.log(targetDiet);
-    const targetAllergen = req.query.targetAllergen || "";
-    console.log(targetAllergen);
+      // Extract parameters
+      const targetCalories = parseInt(req.query.targetCalories, 10);
+      console.log(targetCalories);
+      const targetDiet = req.query.targetDiet || "";
+      //console.log(targetDiet);
+      const targetAllergen = req.query.targetAllergen || "";
+      console.log(targetAllergen);
 
+      const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
+      const apiOrigin = new URL(apiUrl).origin;
 
-    
+      if (!allowedDomains.includes(apiOrigin)) {
+          return res.status(400).json({
+              error: 'Invalid API endpoint'
+          });
+      }
 
-    const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
-    const apiOrigin = new URL(apiUrl).origin;
+      if (targetDiet && !allowedDiets.includes(targetDiet)) {
+          return res.status(400).json({
+              error: 'Invalid targetDiet'
+          });
+      }
 
-    if (!allowedDomains.includes(apiOrigin)) {
-        return res.status(400).json({ error: 'Invalid API endpoint' });
-    }
+      if (targetAllergen && !allowedAllergens.includes(targetAllergen)) {
+          return res.status(400).json({
+              error: 'Invalid targetAllergen'
+          });
+      }
 
-    
-
-    try {
-      const response = await axios.get(apiUrl, {
-        params: {
-          apiKey: process.env.SPOONACULAR_API_KEY,
-          targetCalories: targetCalories,
-          diet: targetDiet,
-          exclude: targetAllergen,
-          timeFrame: 'day'
-        }
-      });
-      res.json(response.data);
-    } catch (error) {
-      console.error('Error fetching meal plan:', error.message);
-      res.status(500).json({ error: 'Error fetching meal plan.' });
-    }
+      try {
+          const response = await axios.get(apiUrl, {
+              params: {
+                  apiKey: process.env.SPOONACULAR_API_KEY,
+                  targetCalories: targetCalories,
+                  diet: targetDiet,
+                  exclude: targetAllergen,
+                  timeFrame: 'day'
+              }
+          });
+          res.json(response.data);
+      } catch (error) {
+          console.error('Error fetching meal plan:', error.message);
+          res.status(500).json({
+              error: 'Error fetching meal plan.'
+          });
+      }
   }
 );
 
@@ -216,6 +323,60 @@ app.post('/forgotpassword', forgotPasswordLimiter, async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+
+// User profile endpoint
+// This endpoint is used to get the user's profile information
+// It is protected and can only be accessed by authenticated users  
+app.get('/user/profile', authenticateToken, async (req, res) => {
+  try {
+    // Sanitises the user_id from the token
+    // This is done to prevent any SQL injection attacks
+    // It also ensures that the user_id is a valid integer
+    const userId = parseInt(req.user.user_id, 10)
+
+    // If the user_id is not a valid integer, return a 400 error
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' })
+    }
+
+    // Queries the database for the user's profile information  
+    // This query selects the username, email and created_at from the users table where the user_id matches the sanitised user_id
+    const query = `
+      SELECT 
+        username,
+        email,
+        created_at
+      FROM users
+      WHERE user_id = $1
+    `
+
+    // Executes the query
+    const result = await db.query(query, [userId])
+    
+    // If the user is not found, return a 404 error
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    // Remove any sensitive data before sending
+    const user = result.rows[0]
+    delete user.password_hash
+    delete user.reset_token
+    
+    // Add rate limiting headers
+    res.set('X-RateLimit-Limit', '100')
+    res.set('X-RateLimit-Remaining', '99')
+
+    // Sends the user's profile information back to the frontend
+    res.json(user)
+  } catch (error) {
+    // If there is an error, return a 500 error
+    console.error('Error fetching user profile:', error)
+
+    // Sends the error back to the frontend
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
 // Export app for testing
 module.exports = app;

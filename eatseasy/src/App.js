@@ -5,6 +5,7 @@ import MealPlan from './pages/MealPlan';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/userAuthentication/LoginPage';
 import Signup from './pages/userAuthentication/Signup';
+import UserProfile from './pages/userProfile/UserProfile';
 import './App.css';
 
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/mealplan" element={<MealPlan />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/userprofile" element={<UserProfile />} />
         </Routes>
       </div>
     </Router>

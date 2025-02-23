@@ -80,7 +80,6 @@ export function HeightInput({ disabled = false, onHeightChange , unit,  UnitChan
   useEffect(() => {
     if (onHeightChange) {
       onHeightChange(measurements);
-      console.log(measurements);
     }
   }, [measurements, onHeightChange]);
 
