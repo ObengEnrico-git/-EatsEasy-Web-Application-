@@ -102,6 +102,13 @@ const BmiCalculator = () => {
 
   const theme = useTheme();
 
+  // Add this useEffect to ensure diet is always an array
+  useEffect(() => {
+    if (!Array.isArray(diet)) {
+      setDietOptions([]);
+    }
+  }, [diet, setDietOptions]);
+
   // Handler to toggle an allergen on/off
   const handleAllergenSelect = (allergen) => {
     if (selectedAllergens.includes(allergen)) {
