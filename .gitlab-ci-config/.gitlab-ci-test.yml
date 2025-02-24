@@ -13,8 +13,8 @@ test-frontend:
     - npm install
     - npm test
   rules:
-    - if: $CI_COMMIT_BRANCH
-
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
 
 # Backend unit tests
 test-backend:
@@ -28,8 +28,8 @@ test-backend:
     - npm install
     - npm test
   rules:
-    - if: $CI_COMMIT_BRANCH
-
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
 
 # Dependency scanning (frontend)
 dependency-scanning-frontend:
@@ -37,8 +37,8 @@ dependency-scanning-frontend:
   variables:
     DS_TARGET_PATH: "eatseasy"
   rules:
-    - if: $CI_COMMIT_BRANCH
-
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
 
 # Dependency scanning (backend)
 dependency-scanning-backend:
@@ -46,4 +46,5 @@ dependency-scanning-backend:
   variables:
     DS_TARGET_PATH: "backend"
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
