@@ -1,9 +1,9 @@
 stages:
-  - test_sync
+  - test-sync
   - deploy
 
 test_sync:
-  stage: test_sync
+  stage: test-sync
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run only for merge requests
   script:
