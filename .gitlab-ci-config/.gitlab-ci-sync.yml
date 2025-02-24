@@ -8,8 +8,21 @@ sync_to_github:
     - apt-get update && apt-get install -y git
     - git config --global user.name "GitLab CI/CD"
     - git config --global user.email "gitlab@example.com"
-    - git remote add github https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git || git remote set-url github https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git
-    - git fetch github main
-    - git checkout main
-    - git rebase github/main || git merge github/main # Sync with remote
-    - git push github main
+
+    # Clone the GitHub repository (eatseasybackend) into a temporary directory
+    - git clone https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git backend-temp
+
+    # Copy the backend folder from the GitLab repository to the temporary directory
+    - cp -r backend/* backend-temp/
+
+    # Navigate to the temporary directory
+    - cd backend-temp
+
+    # Add, commit, and push the changes to GitHub
+    - git add .
+    - git commit -m "Update backend folder from GitLab pipeline"
+    - git push origin main
+
+    # Clean up
+    - cd ..
+    - rm -rf backend-temp
