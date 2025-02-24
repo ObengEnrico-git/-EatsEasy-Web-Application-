@@ -1,10 +1,32 @@
-sync_to_github:
-  stage: sync
+stages:
+  - test-sync
+  - deploy
+
+test_sync:
+  stage: test-sync
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual # Optional: Set to "manual" if you want to trigger it manually
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run only for merge requests
   script:
+    - echo "Testing sync process (dry run)..."
+    - apt-get update && apt-get install -y git
+    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "gitlab@example.com"
+
+    # Simulate the sync process without pushing
+    - git clone https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git backend-temp
+    - cp -r backend/* backend-temp/
+    - cd backend-temp
+    - echo "Dry run: Changes would be pushed to GitHub."
+    - git status
+    - cd ..
+    - rm -rf backend-temp
+
+deploy_to_github:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"' # Run only when changes are merged into main
+  script:
+    - echo "Deploying backend folder to GitHub..."
     - apt-get update && apt-get install -y git
     - git config --global user.name "GitLab CI/CD"
     - git config --global user.email "gitlab@example.com"
