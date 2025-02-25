@@ -20,6 +20,7 @@ const MealPlan = () => {
  
   const [mealData, setMealData] = useState(initialMealData );
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingDays, setLoadingDays] = useState({});
 
   
   const [visibleDay, setVisibleDay] = useState(null);
@@ -28,6 +29,9 @@ const MealPlan = () => {
   const toggleNutrients = (day) => {
     setVisibleDay(visibleDay === day ? null : day);
   };
+
+
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -85,13 +89,13 @@ const MealPlan = () => {
         navigate("/");
         return;
       }
-      setIsLoading(false);
+      setLoadingDays(prev => ({ ...prev, [day]: true }));
+      
       const response = await axios.get("http://localhost:8000/daymealplan", {
         params: {
           targetCalories: Math.round(targetCalories),
           targetDiet: diet,
           targetAllergen: allergen.value,
-          
         },
       });
       
@@ -111,7 +115,7 @@ const MealPlan = () => {
         alert("Failed to fetch day plan. Please try again later.");
       }
     } finally {
-      setIsLoading(false);
+      setLoadingDays(prev => ({ ...prev, [day]: false }));
     }
   };
 
@@ -166,7 +170,7 @@ const MealPlan = () => {
           aria-label="Refresh meal plan"
           disabled={isLoading}
         >
-          {isLoading ? "Refreshing..." : "Refresh"}
+          {isLoading ? "Refreshing..." : "Refresh All Meals"}
         </button>
         {!mealData || !mealData.week ? (
           <>
@@ -183,21 +187,38 @@ const MealPlan = () => {
                   className="info-button"
                   onClick={() => toggleNutrients(day)}
                   aria-label={`Toggle nutrients for ${day}`}
-                >
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  style={{
+                    textDecoration: isHovered ? "underline" : "none",
+                  }}
+                  >
                   More Information
                 </button>
                 <button
-                  
-                  onClick={() => fetchDayPlan(day)} // Refresh only this day
+                  onClick={() => fetchDayPlan(day)}
                   aria-label={`Refresh ${day} meal plan`}
-                  disabled={isLoading}
+                  disabled={loadingDays[day]}
                 >
-                  refresh
+                  {loadingDays[day] ? "Refreshing..." : "Refresh"}
                 </button>
               </h2>
               <div className="meal-list">
-                {mealData.week[day].meals.map((meal) => (
+                {mealData.week[day].meals.map((meal, index) => (
                   <div className="meal-card" key={meal.id}>
+                    <div style={{ 
+                      backgroundColor: "#38a169", 
+                      color: "white", 
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      display: "inline-block",
+                      textAlign: "left",
+                      fontWeight: "bold", 
+                      marginBottom: "8px",
+                      fontSize: "0.9rem"
+                    }}>
+                      {index === 0 ? "Breakfast" : index === 1 ? "Lunch" : "Dinner"}
+                    </div>
                     <h3>{meal.title}</h3>
                     <img
                       src={`https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`}

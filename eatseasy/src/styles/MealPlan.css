@@ -4,7 +4,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background-color: #a7c3a9;
+    background-color: #d9edda;
     color: #333;
     min-height: 100%;
     /* overflow-y: auto; */
@@ -48,9 +48,9 @@ body {
     cursor: pointer;
 }
 
-.info-button:hover {
+/* .info-button:hover {
     color: #ddfaea;
-}
+} */
 
 /* Meal list as a grid */
 .meal-list {

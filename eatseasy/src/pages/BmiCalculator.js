@@ -20,16 +20,22 @@ import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput"
 import { styled } from "@mui/material/styles";
 import WeightInput from "./components/weightInput";
 import HeightInput from "./components/heightInput";
+import { useTheme } from '@mui/material/styles';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import Chip from '@mui/material/Chip';
 
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+const BorderLinearProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 5,
   [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: "#38a169", // track color
+    backgroundColor: "#E8F5E9", // Light green background for incomplete portion
   },
   [`& .${linearProgressClasses.bar}`]: {
     borderRadius: 5,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#38a169", // Darker green for completed portion
   },
 }));
 
@@ -47,6 +53,26 @@ const interestOptions = [
   { value: "Whole30", label: "Whole30" },
 ];
 
+// Add these constants before the BmiCalculator component
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
+function getStyles(name, selectedItems, theme) {
+  return {
+    fontWeight: selectedItems.includes(name)
+      ? theme.typography.fontWeightMedium
+      : theme.typography.fontWeightRegular,
+  };
+}
+
 const BmiCalculator = () => {
   const navigate = useNavigate();
   const [weight, setWeight] = usePersistedState("weight", "");
@@ -57,7 +83,7 @@ const BmiCalculator = () => {
 
   const [heightUnit, setHeightUnit] = usePersistedState("heightUnit", "cm");
   const [age, setAge] = usePersistedState("age", "");
-  const [diet, setDietOptions] = usePersistedState("diet", "");
+  const [diet, setDietOptions] = usePersistedState("diet", []);
   const [error, setError] = useState("");
 
   const [bmi, setBmi] = usePersistedState("bmi", "");
@@ -71,8 +97,24 @@ const BmiCalculator = () => {
   // Add at the top with your other state variables
   const [selectedAllergens, setSelectedAllergens] = usePersistedState(
     "selectedAllergens",
-    ""
+    []
   );
+
+  const theme = useTheme();
+
+  // Add this useEffect to ensure diet is always an array
+  useEffect(() => {
+    if (!Array.isArray(diet)) {
+      setDietOptions([]);
+    }
+  }, [diet, setDietOptions]);
+
+  // Add this useEffect to ensure selectedAllergens is always an array
+  useEffect(() => {
+    if (!Array.isArray(selectedAllergens)) {
+      setSelectedAllergens([]);
+    }
+  }, [selectedAllergens, setSelectedAllergens]);
 
   // Handler to toggle an allergen on/off
   const handleAllergenSelect = (allergen) => {
@@ -238,7 +280,7 @@ const BmiCalculator = () => {
       const response = await axios.get("http://localhost:8000/mealplan", {
         params: {
           targetCalories,
-          targetDiet: diet,
+          targetDiet: diet.join(","),
           targetAllergen: selectedAllergens.join(","),
         },
       });
@@ -283,6 +325,10 @@ const BmiCalculator = () => {
     }
   };
 
+  const goBackStep = () => {
+    setCurrentStep(1);
+  };
+
   return (
     <div>
       <NavBar />
@@ -294,7 +340,7 @@ const BmiCalculator = () => {
           <h1>EatsEasy</h1>
 
           <Typography sx={{ color: "gray", mb: 2, textAlign: "center" }}>
-            We'll personalize your meal plan based on your preferences.
+            We'll personalise your meal plan based on you and your preferences
           </Typography>
 
           <Box sx={{ width: "100%", maxWidth: "700px", mb: 5 }}>
@@ -467,20 +513,37 @@ const BmiCalculator = () => {
                       Select Diet Preferences
                     </h2>
 
-                    <div className="bmiCalculator-input-group ">
-                      <div
-                        data-testid="dropdown-diet"
-                        className=" md:mb-11 mb-10"
-                      >
-                        <FloatingLabelInput
-                          id="dietInterest"
-                          label="Diet Interest"
-                          type="select"
-                          value={diet}
-                          onChange={(e) => setDietOptions(e.target.value)}
-                          options={interestOptions}
-                          sx={{ mb: 5, color: "black" }}
-                        />
+                    <div className="bmiCalculator-input-group">
+                      <div data-testid="dropdown-diet" className="md:mb-11 mb-10">
+                        <FormControl sx={{ width: '100%' }}>
+                          <InputLabel id="diet-preferences-label">Diet Preferences</InputLabel>
+                          <Select
+                            labelId="diet-preferences-label"
+                            id="diet-preferences"
+                            multiple
+                            value={diet}
+                            onChange={(e) => setDietOptions(e.target.value)}
+                            input={<OutlinedInput label="Diet Preferences" />}
+                            renderValue={(selected) => (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {selected.map((value) => (
+                                  <Chip key={value} label={value} />
+                                ))}
+                              </Box>
+                            )}
+                            MenuProps={MenuProps}
+                          >
+                            {interestOptions.map((option) => (
+                              <MenuItem
+                                key={option.value}
+                                value={option.value}
+                                style={getStyles(option.value, diet, theme)}
+                              >
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                       </div>
                     </div>
 
@@ -513,11 +576,33 @@ const BmiCalculator = () => {
                     Calculate
                   </Button>
 
+                  <Button
+                    type="submit"
+                    onClick={goBackStep}
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                      backgroundColor: "#38a169",
+                      color: "#fff",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "30px",
+                      padding: "12px 0",
+                      mt: 5,
+                      "&:hover": {
+                        backgroundColor: "FFFFFF",
+                      },
+                    }}
+                    aria-label="Proceed to the next step"
+                  >
+                    Back
+                  </Button>
+
                   {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
                     Reset{" "}
                   </button> */}
                 </div>
-              }
+                }
             </form>
           )}
           
