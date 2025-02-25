@@ -330,7 +330,7 @@ const BmiCalculator = () => {
   };
 
   return (
-    <div>
+    <div className="bmi-calculator-page">
       <NavBar />
       <div
         className="bmiCalculator-page-container"

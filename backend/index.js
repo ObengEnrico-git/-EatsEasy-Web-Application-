@@ -6,6 +6,7 @@ const db = require('./database');
 const auth = require('./auth');
 const rateLimit = require('express-rate-limit');
 const { query, validationResult } = require("express-validator"); 
+const puppeteer = require("puppeteer");
 
 const jwt = require('jsonwebtoken');
 
@@ -366,6 +367,78 @@ app.get('/user/profile', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' })
   }
 })
+
+
+app.get("/fetchModifiedPage", async (req, res) => {
+  const targetUrl = req.query.url;
+  console.log(targetUrl);
+  if (!targetUrl) {
+    return res.status(400).send("No URL provided");
+  }
+
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    //await page.goto(targetUrl);
+    //await page.waitForNetworkIdle();
+    await page.goto(targetUrl, { timeout: 1000000, waitUntil: "networkidle2" });
+    await page.screenshot({ path: "food.png", fullPage: true });
+
+    // Remove the element with the desired selector (e.g., a banner with id "banner")
+    await page.evaluate(() => {
+      document.querySelector("#header")?.remove(); // Adjust this selector as needed.
+      document.querySelector("#MarketGidPreloadN4300")?.remove();
+      document.querySelector(".adsbygoogle")?.remove();
+      document.querySelector(".adsbygoogle adsbygoogle-noablate")?.remove();
+      document.querySelector(".jar")?.remove();
+      document.querySelector("#ad_position_box")?.remove();
+      document.querySelector(".twitter")?.remove();
+      document.querySelector(".pinterest")?.remove();
+      document.querySelector(".panel-content fade")?.remove();
+      document.querySelector(".print")?.remove();
+      document.querySelector("#skip-link")?.remove();
+
+      document.querySelector(".panel-pane.pane-custom.pane-4")?.remove();
+      document
+        .querySelector(
+          ".panel-pane.pane-entity-field.pane-node-field-rec-tools"
+        )
+        ?.remove();
+      document.querySelector("#block-block-2")?.remove();
+      document.querySelector(".field-name-field-tags")?.remove();
+      document
+        .querySelector(
+          ".panel-pane.pane-entity-field.pane-node-field-yield.inline-field"
+        )
+        ?.remove();
+
+      document.querySelector("#mys-wrapper")?.remove();
+
+       
+
+      // document.querySelectorAll('a').forEach(link => link.remove());
+      // Define how many <a> tags you want to skip (i.e., leave unchanged)
+      const skipCount = 2;
+      // Convert the NodeList to an array so we can use slice
+      const allLinks = Array.from(document.querySelectorAll("a"));
+      // Replace only those links after the first "skipCount" anchors
+      allLinks.slice(skipCount).forEach((link) => {
+        link.replaceWith(link.textContent);
+      });
+
+    });
+
+    // Get the modified HTML content
+    await page.screenshot({ path: "after.png", fullPage: true });
+    const modifiedHtml = await page.content();
+    await browser.close();
+
+    res.send(modifiedHtml);
+  } catch (error) {
+    console.error("Error modifying page:", error);
+    res.status(500).send("Error processing the page");
+  }
+});
 
 // Export app for testing
 module.exports = app;
