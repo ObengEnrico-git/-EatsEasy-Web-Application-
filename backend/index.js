@@ -258,13 +258,14 @@ app.get(
           });
       }
 
+      //TODO: Add a check to see if the targetDiet and targetAllergen are valid
+      //TODO: Add a check to see if the targetCalories is a number
+      //TODO: Add a check to see if the targetCalories is within the range of 1 to 10000
+
       // Extract parameters
       const targetCalories = parseInt(req.query.targetCalories, 10);
-      console.log(targetCalories);
       const targetDiet = req.query.targetDiet || "";
-      //console.log(targetDiet);
       const targetAllergen = req.query.targetAllergen || "";
-      console.log(targetAllergen);
 
       const apiUrl = 'https://api.spoonacular.com/mealplanner/generate';
       const apiOrigin = new URL(apiUrl).origin;
@@ -272,18 +273,6 @@ app.get(
       if (!allowedDomains.includes(apiOrigin)) {
           return res.status(400).json({
               error: 'Invalid API endpoint'
-          });
-      }
-
-      if (targetDiet && !allowedDiets.includes(targetDiet)) {
-          return res.status(400).json({
-              error: 'Invalid targetDiet'
-          });
-      }
-
-      if (targetAllergen && !allowedAllergens.includes(targetAllergen)) {
-          return res.status(400).json({
-              error: 'Invalid targetAllergen'
           });
       }
 

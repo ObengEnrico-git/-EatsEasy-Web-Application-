@@ -20,6 +20,7 @@ const MealPlan = () => {
  
   const [mealData, setMealData] = useState(initialMealData );
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingDays, setLoadingDays] = useState({});
 
   
   const [visibleDay, setVisibleDay] = useState(null);
@@ -88,13 +89,13 @@ const MealPlan = () => {
         navigate("/");
         return;
       }
-      setIsLoading(false);
+      setLoadingDays(prev => ({ ...prev, [day]: true }));
+      
       const response = await axios.get("http://localhost:8000/daymealplan", {
         params: {
           targetCalories: Math.round(targetCalories),
           targetDiet: diet,
           targetAllergen: allergen.value,
-          
         },
       });
       
@@ -114,7 +115,7 @@ const MealPlan = () => {
         alert("Failed to fetch day plan. Please try again later.");
       }
     } finally {
-      setIsLoading(false);
+      setLoadingDays(prev => ({ ...prev, [day]: false }));
     }
   };
 
@@ -195,12 +196,11 @@ const MealPlan = () => {
                   More Information
                 </button>
                 <button
-                  
-                  onClick={() => fetchDayPlan(day)} // Refresh only this day
+                  onClick={() => fetchDayPlan(day)}
                   aria-label={`Refresh ${day} meal plan`}
-                  disabled={isLoading}
+                  disabled={loadingDays[day]}
                 >
-                  Refresh
+                  {loadingDays[day] ? "Refreshing..." : "Refresh"}
                 </button>
               </h2>
               <div className="meal-list">
