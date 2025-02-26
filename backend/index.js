@@ -5,6 +5,9 @@ const cors = require('cors');
 const db = require('./database');
 const auth = require('./auth');
 const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 
 dotenv.config();
 
@@ -13,8 +16,16 @@ const PORT = process.env.PORT || 8000;
 
 const allowedDomains = ['https://api.spoonacular.com'];
 
-app.use(cors());
+app.set('trust proxy', 1);
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    exposedHeaders: ['Set-Cookie', 'Cookie']
+  }));
+
 app.use(express.json());
+app.use(cookieParser());
 
 // Add rate limiter for forgot password so you can't spam our backend
 // TODO (potentially) : add this rate lmiter for all our endpoints?
@@ -45,6 +56,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
+
 // Login user endpoint
 // Logs the user in (no way)
 app.post('/login', async (req, res) => {
@@ -55,12 +67,40 @@ app.post('/login', async (req, res) => {
     }
 
     try {
+        // Use the actual authentication logic from auth.js
         const user = await auth.loginUser(email, password);
-        res.status(200).json({ message: 'Login successful', user });
+        
+        console.log('Setting Token Cookie:', user.token);
+
+        // Send the token cookie
+        res.cookie('token', user.token, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            maxAge: 60 * 60 * 1000,
+            path: '/',
+            // Remove domain specification
+        });
+
+        res.status(200).json({ 
+            message: 'Login successful', 
+            user: { user_id: user.user_id, email: user.email } 
+        });
+
     } catch (err) {
         res.status(401).json({ error: err.message });
     }
 });
+
+// Debug endpoint to check cookies
+app.get('/debug-cookies', (req, res) => {
+    console.log('Received cookies:', req.cookies);
+    res.json({
+      cookies: req.cookies,
+      headers: req.headers
+    });
+  });
+
 
 // Mealplan Endpoint
 // Generates a mealplan based on a users TDEE (targetCalories)

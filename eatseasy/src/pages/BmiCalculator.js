@@ -1,10 +1,11 @@
 // BmiCalculator.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavBar from './NavBar';
 import { useNavigate } from 'react-router-dom';
 import "../styles/BmiCalculator.css";
 import Select from 'react-select';
 import axios from 'axios';
+import Cookies from "js-cookie";
 
 const BmiCalculator = () => {
     const [weight, setWeight] = useState('');
@@ -22,7 +23,19 @@ const BmiCalculator = () => {
     const [isCalculated, setIsCalculated] = useState(false);
     const navigate = useNavigate(); // React Router hook
     const [weightGoal, setWeightGoal] = useState("");
-    const [showGoalPopup, setShowGoalPopup] = useState(false); // Controls the popup visibility
+    const [showGoalPopup, setShowGoalPopup] = useState(false);
+
+    useEffect(() => {
+        // Check for stored BMI in cookies
+        const storedBMI = Cookies.get('bmiData');
+        if (storedBMI) {
+          const parsedData = JSON.parse(storedBMI);
+          setBmi(parsedData.bmi);
+          setStatus(parsedData.status);
+          setWeightGoal(parsedData.weightGoal);
+          setIsCalculated(true);
+        }
+      }, []);
 
     const convertFeetAndInchesToCm = (feet, inches) => feet * 30.48 + inches * 2.54;
     const convertPoundsToKg = (pounds) => pounds * 0.453592;
@@ -102,7 +115,9 @@ const BmiCalculator = () => {
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
     setShowGoalPopup(true);
-};
+
+    Cookies.set('bmiData', JSON.stringify({ bmi: bmiValue, status: bmiStatus, weightGoal: recommendedGoal }), { expires: 7 });
+  };
 
 
 
@@ -157,7 +172,6 @@ const BmiCalculator = () => {
     // Fetch recipes based on calorie count
     fetchMealPlan(targetCalories);
 };
-
 
     const fetchMealPlan = async (targetCalories) => {
     try {
