@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import "../styles/MealPlan.css";
 import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
+const Loader = lazy(() => import("./Loader"));
+
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 
 const MealPlan = () => {
@@ -22,6 +24,7 @@ const MealPlan = () => {
   const [mealData, setMealData] = useState(initialMealData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState({});
+  const [viewIsLoading, setViewIsLoading] = useState(false);
 
 
   const [visibleDay, setVisibleDay] = useState(null);
@@ -131,6 +134,33 @@ const MealPlan = () => {
     navigate("/");
   };
 
+
+  const handleViewRecipe = async (url) => {
+    setViewIsLoading(true);
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/fetchModifiedPage",
+        {
+          params: { url },
+        }
+      );
+      const newWindow = window.open("", "_blank");
+      newWindow.document.open();
+      newWindow.document.write(response.data);
+      newWindow.document.close();
+
+      newWindow.onhashchange = () => { // replaces anything after the # on url dynamically removes anything after to "" (empty) 
+        newWindow.history.replaceState( 
+          null,
+          "",
+          newWindow.location.pathname + newWindow.location.search
+        );
+      };
+    } catch (error) {
+      console.error("Error scraping recipe:", error);
+    } finally {
+      setViewIsLoading(false);
+    }
   const toggleFavourite = (mealId) => {
     setFavouritedMeals((prev) => ({
       ...prev,
@@ -256,11 +286,23 @@ const MealPlan = () => {
                     </div>
                     <a
                       href={meal.sourceUrl}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleViewRecipe(meal.sourceUrl);
+                      }}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       View Recipe
                     </a>
+                    {/* Loader overlay */}
+                    {viewIsLoading && (
+                      <div>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <Loader />
+                        </Suspense>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

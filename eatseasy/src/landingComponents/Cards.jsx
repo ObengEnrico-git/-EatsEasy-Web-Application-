@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import NumberOne from '../images/number-1.png';
-import NumberTwo from '../images/number-2.png';
-import NumberThree from '../images/number-3.png';
+import NumberOne from '../images/number-1.webp';
+import NumberTwo from '../images/number-2.webp';
+import NumberThree from '../images/number-3.webp';
+
+//lazy loading does not happen here
 
 const Cards = () => {
 
@@ -24,7 +26,8 @@ const Cards = () => {
 
                 {/* Step One Card */}
                 <div className='w-full shadow-xl flex flex-col p-4 my-4 rounded-lg hover:scale-105 duration-300'>
-                    <img className='w-20 mx-auto mt-[-3rem] bg-white' src={NumberOne} alt="1" />
+                    <img className='w-20 mx-auto mt-[-3rem] bg-white' src={NumberOne} alt="1" loading="lazy"
+ />
                     <h2 className='text-2xl font-bold text-center py-8'>Step One</h2>
                     <p className='text-center font-bold'>This is how step one works</p>
                     <div className='text-center font-medium'>
@@ -37,7 +40,8 @@ const Cards = () => {
 
                 {/* Step Two Card */}
                 <div className='w-full shadow-xl bg-gray-100 flex flex-col p-4 md:my-0 my-8 rounded-lg hover:scale-105 duration-300'>
-                    <img className='w-20 mx-auto mt-[-3rem] bg-transparent' src={NumberTwo} alt="2" />
+                    <img className='w-20 mx-auto mt-[-3rem] bg-transparent' src={NumberTwo} alt="2" loading="lazy"
+ />
                     <h2 className='text-2xl font-bold text-center py-8'>Step Two</h2>
                     <p className='text-center font-bold'>This is how step two works</p>
                     <div className='text-center font-medium'>
@@ -50,7 +54,8 @@ const Cards = () => {
 
                 {/* Step Three Card */}
                 <div className='w-full shadow-xl flex flex-col p-4 my-4 rounded-lg hover:scale-105 duration-300'>
-                    <img className='w-20 mx-auto mt-[-3rem] bg-white' src={NumberThree} alt="3" />
+                    <img className='w-20 mx-auto mt-[-3rem] bg-white' src={NumberThree} alt="3" loading="lazy"
+ />
                     <h2 className='text-2xl font-bold text-center py-8'>Step Three</h2>
                     <p className='text-center font-bold'>This is how step three works</p>
                     <div className='text-center font-medium'>
