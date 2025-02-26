@@ -145,8 +145,8 @@ const MealPlan = () => {
       newWindow.document.write(response.data);
       newWindow.document.close();
 
-      newWindow.onhashchange = () => {
-        newWindow.history.replaceState(
+      newWindow.onhashchange = () => { // replaces anything after the # on url dynamically removes anything after to "" (empty) 
+        newWindow.history.replaceState( 
           null,
           "",
           newWindow.location.pathname + newWindow.location.search
