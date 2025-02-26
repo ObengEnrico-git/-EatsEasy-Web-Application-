@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import "../styles/MealPlan.css";
@@ -54,7 +54,7 @@ const MealPlan = () => {
   
   // Store recipes in the database
   // This function is used to store recipes in the database
-  const storeRecipes = async (meals) => {
+  const storeRecipes = useCallback(async (meals) => {
     // If the user is not authenticated, skip recipe storage
     if (!isAuthenticated) {
       console.log('User not authenticated, skipping recipe storage');
@@ -68,10 +68,6 @@ const MealPlan = () => {
     const storeRecipePromises = meals.map(meal => {
       console.log('Storing recipe:', meal.title);
 
-      // Store the recipe in the database
-      // The recipe is stored in the database using the /api/recipes route
-      // The recipe is stored in the database using the POST method
-      // The recipe is stored in the database using the token for authentication
       return axios.post("http://localhost:8000/api/recipes", 
         {
           recipeId: meal.id,
@@ -105,12 +101,11 @@ const MealPlan = () => {
     });
 
     try {
-      // Store all recipes in the database
       await Promise.allSettled(storeRecipePromises);
     } catch (error) {
       console.error('Error processing recipes:', error);
     }
-  };
+  }, [isAuthenticated]);
 
   const fetchNewMealPlan = async () => {
     try {
@@ -241,7 +236,7 @@ const MealPlan = () => {
         storeRecipes(day.meals);
       });
     }
-  }, [initialMealData, isAuthenticated]);
+  }, [initialMealData, isAuthenticated, storeRecipes]);
 
   return (
     <div>
