@@ -14,6 +14,7 @@ export default function SignInSide(props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
+  //Doesn't fully work yet
   const handleLogin = async (e) => {
     e.preventDefault();
     try {

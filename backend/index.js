@@ -67,19 +67,17 @@ app.post('/login', async (req, res) => {
     }
 
     try {
-        // Use the actual authentication logic from auth.js
         const user = await auth.loginUser(email, password);
         
         console.log('Setting Token Cookie:', user.token);
 
-        // Send the token cookie
+        // Send the user token cookie
         res.cookie('token', user.token, {
             httpOnly: true,
             sameSite: 'none',
             secure: true,
             maxAge: 60 * 60 * 1000,
             path: '/',
-            // Remove domain specification
         });
 
         res.status(200).json({ 

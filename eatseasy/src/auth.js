@@ -1,11 +1,14 @@
 import axios from 'axios';
+
+
+//login authenticator
 export const login = async (email, password) => {
   try {
       const response = await axios.post('http://localhost:8000/login', {
           email,
           password
       }, {
-          withCredentials: true // This is crucial for cookies
+          withCredentials: true
       });
       return response.data;
   } catch (error) {

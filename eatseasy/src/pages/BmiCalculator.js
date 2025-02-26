@@ -26,14 +26,26 @@ const BmiCalculator = () => {
     const [showGoalPopup, setShowGoalPopup] = useState(false);
 
     useEffect(() => {
-        // Check for stored BMI in cookies
         const storedBMI = Cookies.get('bmiData');
         if (storedBMI) {
-          const parsedData = JSON.parse(storedBMI);
-          setBmi(parsedData.bmi);
-          setStatus(parsedData.status);
-          setWeightGoal(parsedData.weightGoal);
-          setIsCalculated(true);
+          try {
+            const parsedData = JSON.parse(storedBMI);
+            if (parsedData && typeof parsedData === 'object') {
+              setBmi(parsedData.bmi || '');
+              setStatus(parsedData.status || '');
+              setWeightGoal(parsedData.weightGoal || '');
+              setWeight(parsedData.weight || '');
+              setWeightUnit(parsedData.weightUnit || 'kg');
+              setGender(parsedData.gender || '');
+              setHeight(parsedData.height || '');
+              setHeightUnit(parsedData.heightUnit || 'cm');
+              setAge(parsedData.age || '');
+              setOptionPicked(parsedData.optionPicked || '');
+              setIsCalculated(true);
+            }
+          } catch (error) {
+            console.error('Error parsing BMI data from cookies:', error);
+          }
         }
       }, []);
 
@@ -116,8 +128,19 @@ const BmiCalculator = () => {
     setIsCalculated(true);
     setShowGoalPopup(true);
 
-    Cookies.set('bmiData', JSON.stringify({ bmi: bmiValue, status: bmiStatus, weightGoal: recommendedGoal }), { expires: 7 });
-  };
+    Cookies.set('bmiData', JSON.stringify({ 
+        bmi: bmiValue, 
+        status: bmiStatus, 
+        weightGoal: recommendedGoal,
+        weight,
+        weightUnit,
+        gender,
+        height,
+        heightUnit,
+        age,
+        optionPicked
+      }), { expires: 7 });
+    };
 
 
 
