@@ -224,3 +224,27 @@ body {
     margin-right: 8px;
     font-size: 1.2rem;
 }
+
+.loader-overlay {
+    position: fixed;
+    /* This makes the element fixed relative to the viewport */
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    /* 100% of the viewport width */
+    height: 100%;
+    /* 100% of the viewport height */
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Center content vertically as well */
+    z-index: 9999;
+    text-align: center;
+    overflow: hidden;
+}
+
+.scraped-recipe-content {
+    background-color: white;
+}

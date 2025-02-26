@@ -1,16 +1,21 @@
-import React from 'react';
-import Navbar from '../landingComponents/Navbar';
-import Section1 from '../landingComponents/Section1';
-import Cards from '../landingComponents/Cards';
+import React, { lazy, Suspense } from 'react';
+
+const Navbar = lazy(() => import('../landingComponents/Navbar'));
+const Section1 = lazy(() => import('../landingComponents/Section1'));
+const Cards = lazy(() => import('../landingComponents/Cards'));
+const Loader = lazy(() => import('../pages/Loader')); //loading screen in between pages 
+
 
 const LandingPage = () => {
-    return (
-        <div>
-            <Navbar />
-            <Section1 />
-            <Cards />
-        </div>
-    )
+  return (
+    <Suspense fallback={<div> <Loader/></div>}>
+      <div>
+        <Navbar />
+        <Section1 />
+        <Cards />
+      </div>
+    </Suspense>
+  );
 };
 
 export default LandingPage;
