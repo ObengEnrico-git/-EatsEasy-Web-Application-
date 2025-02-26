@@ -5,6 +5,7 @@ import "../styles/MealPlan.css";
 import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 
 const MealPlan = () => {
   const location = useLocation();
@@ -14,15 +15,15 @@ const MealPlan = () => {
     targetCalories,
     diet,
     allergen,
-    
+
   } = location.state || {};
 
- 
-  const [mealData, setMealData] = useState(initialMealData );
+
+  const [mealData, setMealData] = useState(initialMealData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState({});
 
-  
+
   const [visibleDay, setVisibleDay] = useState(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
 
@@ -32,6 +33,9 @@ const MealPlan = () => {
 
 
   const [isHovered, setIsHovered] = useState(false);
+
+  const [hoveredHeart, setHoveredHeart] = useState(null);
+  const [favouritedMeals, setFavouritedMeals] = useState({});
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -47,7 +51,7 @@ const MealPlan = () => {
     };
   }, [showInfoPanel]);
 
-  
+
   const fetchNewMealPlan = async () => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -64,7 +68,7 @@ const MealPlan = () => {
           targetCalories: Math.round(targetCalories),
           targetDiet: diet,
           targetAllergen: allergen.value,
-         
+
         },
       });
       setMealData(response.data);
@@ -81,7 +85,7 @@ const MealPlan = () => {
     }
   };
 
-  
+
   const fetchDayPlan = async (day) => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -90,7 +94,7 @@ const MealPlan = () => {
         return;
       }
       setLoadingDays(prev => ({ ...prev, [day]: true }));
-      
+
       const response = await axios.get("http://localhost:8000/daymealplan", {
         params: {
           targetCalories: Math.round(targetCalories),
@@ -98,12 +102,12 @@ const MealPlan = () => {
           targetAllergen: allergen.value,
         },
       });
-      
+
       setMealData((prevMealData) => ({
         ...prevMealData,
         week: {
           ...prevMealData.week,
-          [day]: response.data, 
+          [day]: response.data,
         },
       }));
     } catch (error) {
@@ -125,6 +129,13 @@ const MealPlan = () => {
 
   const handleGoBack = () => {
     navigate("/");
+  };
+
+  const toggleFavourite = (mealId) => {
+    setFavouritedMeals((prev) => ({
+      ...prev,
+      [mealId]: !prev[mealId],
+    }));
   };
 
   return (
@@ -163,7 +174,7 @@ const MealPlan = () => {
           </div>
         )}
         <h1>Recommended Meals</h1>
-      
+
         <button
           className="refresh-button"
           onClick={refreshMealPlan}
@@ -192,7 +203,7 @@ const MealPlan = () => {
                   style={{
                     textDecoration: isHovered ? "underline" : "none",
                   }}
-                  >
+                >
                   More Information
                 </button>
                 <button
@@ -206,14 +217,23 @@ const MealPlan = () => {
               <div className="meal-list">
                 {mealData.week[day].meals.map((meal, index) => (
                   <div className="meal-card" key={meal.id}>
-                    <div style={{ 
-                      backgroundColor: "#38a169", 
-                      color: "white", 
+                    <div
+                      className="heart-icon"
+                      onMouseEnter={() => setHoveredHeart(meal.id)} // Track hover
+                      onMouseLeave={() => setHoveredHeart(null)} // Reset on unhover
+                      onClick={() => toggleFavourite(meal.id)}
+                    >
+                      {favouritedMeals[meal.id] || hoveredHeart === meal.id ? <FaHeart color="red" /> : <FaRegHeart />}
+                    </div>
+
+                    <div style={{
+                      backgroundColor: "#38a169",
+                      color: "white",
                       padding: "4px 8px",
                       borderRadius: "4px",
                       display: "inline-block",
                       textAlign: "left",
-                      fontWeight: "bold", 
+                      fontWeight: "bold",
                       marginBottom: "8px",
                       fontSize: "0.9rem"
                     }}>
