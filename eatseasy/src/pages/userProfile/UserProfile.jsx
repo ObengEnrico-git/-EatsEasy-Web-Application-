@@ -26,11 +26,11 @@ const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState(null)
   const navigate = useNavigate()
-  const [yourMealPlans, setYourMealPlans] = useState([])
   const [favoriteRecipes, setFavoriteRecipes] = useState([])
   const [bmiData, setBmiData] = useState(null)
   const [openBackdrop, setOpenBackdrop] = useState(false)
   const [showLogoutAlert, setShowLogoutAlert] = useState(false)
+  const [savedRecipes, setSavedRecipes] = useState([]);
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -115,71 +115,67 @@ const UserProfile = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // token is the token from the local storage and we are using it to fetch the users token
-      const token = localStorage.getItem('token')
-      // Set the isLoading state to true
-      setIsLoading(true)
+      const token = localStorage.getItem('token');
+      setIsLoading(true);
       try {
-        // mealPlansRes, favoritesRes, bmiRes are the responses from the meal plans, favorites and bmi data
-        // All these endpoints are not implemented yet
+        // Only fetch saved recipes initially as other endpoints aren't implemented yet
         // TODO: Implement the endpoints within index.js
-        // Could make a new file for the process of fetching the data (like how we have auth.js for the authentication process)
+        const savedRecipesRes = await fetch('http://localhost:8000/api/recipes/saved', {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
 
-        const [mealPlansRes, favoritesRes, bmiRes] = await Promise.all([
-          // mealPlansRes is the response from the meal plans data
-          // The endpoint is not implemented yet
-          // TODO: Implement the endpoint within index.js
-          fetch('http://localhost:8000/user/meal-plans', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          // favoritesRes is the response from the favorites data
-          // The endpoint is not implemented yet
-          // TODO: Implement the endpoint within index.js
-          fetch('http://localhost:8000/user/favorite-recipes', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          // bmiRes is the response from the bmi data
-          // The endpoint is not implemented yet
-          // TODO: Implement the endpoint within index.js
-          fetch('http://localhost:8000/user/bmi-data', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-        ])
+        if (!savedRecipesRes.ok) {
+          throw new Error(`HTTP error! status: ${savedRecipesRes.status}`);
+        }
 
-        // mealPlans, favorites, bmi are the meal plans, favorites and bmi data
-        const [mealPlans, favorites, bmi] = await Promise.all([
-          // mealPlans is the meal plans data
-          // The response is not implemented yet
-          // TODO: Implement the response within index.js
-          mealPlansRes.json(),
-          // favorites is the favorites data
-          // The response is not implemented yet
-          // TODO: Implement the response within index.js
-          favoritesRes.json(),
-          // bmi is the bmi data
-          // The response is not implemented yet
-          // TODO: Implement the response within index.js
-          bmiRes.json()
-        ])
+        const savedRecipesData = await savedRecipesRes.json();
+        console.log('Raw saved recipes:', savedRecipesData);
 
-        // Set the meal plans to the meal plans state
-        setYourMealPlans(mealPlans)
-        // Set the favorites to the favorites state
-        setFavoriteRecipes(favorites)
-        // Set the bmi to the bmi state
-        setBmiData(bmi)
+        // Transform the data to match the expected structure
+        const formattedSavedRecipes = savedRecipesData.map(plan => ({
+          planId: plan.planId,
+          createdAt: plan.createdAt,
+          recipes: Object.fromEntries(
+            Object.entries(plan.recipes || {}).map(([day, meals]) => [
+              day,
+              meals.map(meal => ({
+                title: meal.title,
+                imageUrl: meal.photo_url,
+                readyInMinutes: meal.prep_time,
+                servings: meal.servings,
+                sourceUrl: meal.recipe_url,
+                meal_order: meal.meal_order || 0
+              }))
+            ])
+          )
+        }));
+
+        console.log('Formatted saved recipes:', formattedSavedRecipes);
+
+        // Set empty arrays for unimplemented endpoints
+        setFavoriteRecipes([]);
+        setBmiData(null);
+        setSavedRecipes(formattedSavedRecipes);
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error('Error fetching data:', error);
+        setSavedRecipes([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    // If the user is authenticated, fetch the data
     if (isAuthenticated) {
-      fetchData()
+      fetchData();
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
+
+  const handlePlanDeleted = (deletedPlanId) => {
+    // Update the savedRecipes state by filtering out the deleted plan
+    setSavedRecipes(prev => prev.filter(plan => plan.planId !== deletedPlanId));
+  };
 
   if (isLoading && isAuthenticated) {
     return (
@@ -270,15 +266,18 @@ const UserProfile = () => {
             <Typography>Loading...</Typography>
           </Box>
         ) : (
-          // If the data is loaded, return the UserBmi, FavoriteMealPlans and FavoriteRecipes components
           <>
             <UserBmi bmiData={bmiData} />
+            
+            {/* Saved Weekly Meal Plans using FavoriteMealPlans component */}
             <FavoriteMealPlans 
-              mealPlans={yourMealPlans}
+              mealPlans={savedRecipes}
               onHover={setHoveredCard}
               hoveredCard={hoveredCard}
               onMealPlanClick={handleRecipeClick}
+              onPlanDeleted={handlePlanDeleted}
             />
+
             <FavoriteRecipes 
               recipes={favoriteRecipes}
               onHover={setHoveredCard}

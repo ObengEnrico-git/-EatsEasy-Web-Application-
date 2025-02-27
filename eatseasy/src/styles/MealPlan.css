@@ -260,3 +260,25 @@ body {
     z-index: 10;
     /* Ensure it's above other elements */
 }
+
+.refresh-icon {
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    z-index: 10;
+    /* Ensure it's above other elements */
+}
+
+.refresh-button-favourite {
+    background-color: #2f855a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+
+}
+
+.refresh-button-favourite:hover {
+    background-color: #246c48;
+    text-decoration: underline;
+}

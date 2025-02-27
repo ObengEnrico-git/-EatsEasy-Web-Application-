@@ -8,6 +8,8 @@ const NavBar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const isAuthenticated = localStorage.getItem('token') !== null;
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -40,8 +42,11 @@ const NavBar = () => {
           <li><a href="/">Home</a></li>
           <li><a href="/Bmi">Bmi Calculator</a></li>
           <li><a href="/mealplan">Meal Plan</a></li>
-          <li><a href="/Login">Login Page</a></li>
-          <li><a href="/userProfile">Profile</a></li>
+          {isAuthenticated ? (
+            <li><a href="/userProfile">Profile</a></li>
+          ) : (
+            <li><a href="/login">Login</a></li>
+          )}
         </ul>
       </div>
     </nav>

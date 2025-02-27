@@ -6,6 +6,7 @@ import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { FiRefreshCw } from "react-icons/fi";
 const Loader = lazy(() => import("./Loader"));
 
 
@@ -40,6 +41,9 @@ const MealPlan = () => {
 
   const [hoveredHeart, setHoveredHeart] = useState(null);
   const [favouritedMeals, setFavouritedMeals] = useState({});
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -250,6 +254,58 @@ const MealPlan = () => {
     }
   }, [initialMealData, isAuthenticated, storeRecipes]);
 
+  const handleFavoriteAll = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Collect all recipes from the meal plan with day and order information
+      const allRecipes = [];
+      Object.entries(mealData.week).forEach(([day, dayData]) => {
+        dayData.meals.forEach((meal, index) => {
+          allRecipes.push({
+            title: meal.title,
+            imageUrl: `https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`,
+            readyInMinutes: meal.readyInMinutes,
+            servings: meal.servings,
+            sourceUrl: meal.sourceUrl,
+            day: day.toLowerCase(), // e.g., 'monday'
+            mealOrder: index // 0 for breakfast, 1 for lunch, 2 for dinner
+          });
+        });
+      });
+
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8000/api/recipes/save-all',
+        { 
+          recipes: allRecipes,
+          weekData: mealData.week
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving recipes:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        navigate('/login');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div>
       <NavBar />
@@ -287,14 +343,30 @@ const MealPlan = () => {
         )}
         <h1>Recommended Meals</h1>
 
-        <button
-          className="refresh-button"
-          onClick={refreshMealPlan}
-          aria-label="Refresh meal plan"
-          disabled={isLoading}
-        >
-          {isLoading ? "Refreshing..." : "Refresh All Meals"}
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            className="refresh-button"
+            onClick={refreshMealPlan}
+            aria-label="Refresh meal plan"
+            disabled={isLoading}
+          >
+            {isLoading ? "Refreshing..." : "Refresh All Meals"}
+          </button>
+
+          <button
+            className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+              isSaving || !isAuthenticated
+                ? 'bg-gray-300 cursor-not-allowed'
+                : saveSuccess
+                ? 'bg-green-500 text-white'
+                : 'bg-[#1f9b48] hover:bg-[#194b34] text-white'
+            }`}
+            onClick={handleFavoriteAll}
+            disabled={isSaving || !isAuthenticated}
+          >
+            {isSaving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Favorite All Meals'}
+          </button>
+        </div>
         {!mealData || !mealData.week ? (
           <>
             <p>No meal data available</p>
@@ -323,7 +395,7 @@ const MealPlan = () => {
                   aria-label={`Refresh ${day} meal plan`}
                   disabled={loadingDays[day]}
                 >
-                  {loadingDays[day] ? "Refreshing..." : "Refresh"}
+                  {loadingDays[day] ? <FiRefreshCw className="refresh-icon" /> : <FiRefreshCw className="refresh-icon" />}
                 </button>
               </h2>
               <div className="meal-list">

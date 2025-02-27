@@ -50,7 +50,7 @@ const allowedAllergens = [
 //error status code: 429
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 100,
+  limit: 100000,
   message: "Too many requests from this IP, please try again later.",
 });
 
@@ -379,8 +379,8 @@ app.get("/user/profile", authenticateToken, async (req, res) => {
     delete user.reset_token;
 
     // Add rate limiting headers
-    res.set("X-RateLimit-Limit", "100");
-    res.set("X-RateLimit-Remaining", "99");
+    // res.set("X-RateLimit-Limit", "100");
+    // res.set("X-RateLimit-Remaining", "99");
 
     // Sends the user's profile information back to the frontend
     res.json(user);
