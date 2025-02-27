@@ -13,6 +13,8 @@ const Navbar = () => {
 
     };
 
+    const isAuthenticated = localStorage.getItem('token') !== null;
+
     return (
         <div className='flex justify-between items-center h-24 text-white bg-[#07853D] w-full px-6'>
             {/* Logo */}
@@ -21,18 +23,29 @@ const Navbar = () => {
             {/* Desktop Menu -- home and log in and sign up buttons */}
             <ul className='hidden md:flex items-center space-x-6'>
                 <li className='text-lg font-bold'>Home</li>
-                <li>
-                    <button className='bg-[#13290C] text-white px-4 py-2 rounded-md'
-                        onClick={() => navigate('/login')}
-                    >Log in
+                {isAuthenticated ? (
+                    <li>
+                        <button className='bg-[#13290C] text-white px-4 py-2 rounded-md'
+                            onClick={() => navigate('/userProfile')}
+                        >Profile
+                        </button>
+                    </li>
+                ) : (
+                    <>
+                        <li>
+                            <button className='bg-[#13290C] text-white px-4 py-2 rounded-md'
+                                onClick={() => navigate('/login')}
+                            >Log in
                     </button>
                 </li>
                 <li>
                     <button className='bg-[#13290C] text-white px-4 py-2 rounded-md'
                         onClick={() => navigate('/signup')}
-                    >Sign up
-                    </button>
-                </li>
+                            >Sign up
+                            </button>
+                        </li>
+                    </>
+                )}
             </ul>
 
             {/* Mobile Menu Button -- burger icon and exit out icon */}

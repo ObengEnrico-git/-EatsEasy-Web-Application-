@@ -41,7 +41,8 @@ const authenticateToken = (req, res, next) => {
 };
 
 // POST route to store recipe in database and return recipe data - requires user to be authenticated
-// This route is used to store recipes from the Spoonacular API
+// This endpoint stores a single recipe in the recipes table
+// Called by the storeRecipe function within MealPlan.js
 router.post('/', authenticateToken, async (req, res) => {
     try {
         // Get the recipe data from the request body
@@ -166,6 +167,254 @@ router.get('/', async (req, res) => {
     } catch (error) {
         console.error('Error fetching recipe:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST route to save multiple recipes for a user
+// Creates a new meal plan entry in the saved_meal_plans table within the db
+// Stores recipes in the recipes table (if they don't already exist)
+// Creates entries in the saved_recipes table, linking recipes to the meal plan
+// Called by the handleFavouriteAll() function within MealPlan.js -> when the user clicks "Favourite All Meals"
+router.post('/save-all', authenticateToken, async (req, res) => {
+    try {
+        // Get the recipes and weekData from the request body
+        const { recipes, weekData } = req.body;
+        // Get the user ID from the request user
+        const userId = req.user.user_id;
+
+        // Validate the required fields
+        if (!Array.isArray(recipes) || recipes.length === 0) {
+            return res.status(400).json({ error: 'No recipes provided' });
+        }
+
+        // First ensure all recipes exist in the recipes table
+        // This is to prevent duplicate recipes from being saved
+        for (const recipe of recipes) {
+            const checkQuery = `
+                SELECT recipe_id FROM recipes 
+                WHERE recipe_url = $1;
+            `;
+            // Using the checkQuery, query the database to check if the recipe exists
+            const existingRecipe = await db.query(checkQuery, [recipe.sourceUrl]);
+
+            // If the recipe doesn't exist, insert it within the recipes table
+            if (existingRecipe.rows.length === 0) {
+                // Insert the recipe if it doesn't exist
+                const insertRecipeQuery = `
+                    INSERT INTO recipes (
+                        title, 
+                        photo_url, 
+                        prep_time, 
+                        servings, 
+                        recipe_url
+                    )
+                    VALUES ($1, $2, $3, $4, $5)
+                    RETURNING recipe_id;
+                `;
+
+                // Using the insertRecipeQuery, insert the recipe into the recipes table
+                await db.query(insertRecipeQuery, [
+                    recipe.title,
+                    recipe.imageUrl,
+                    recipe.readyInMinutes,
+                    recipe.servings,
+                    recipe.sourceUrl
+                ]);
+            }
+        }
+
+        // Create a saved_meal_plans entry
+        const createPlanQuery = `
+            INSERT INTO saved_meal_plans (user_id, created_at)
+            VALUES ($1, CURRENT_TIMESTAMP)
+            RETURNING plan_id;
+        `;
+        // Using the createPlanQuery, create a saved_meal_plans entry
+        const planResult = await db.query(createPlanQuery, [userId]);
+        // Get the planId from the result
+        const planId = planResult.rows[0].plan_id;
+
+        // Now save all recipes to saved_recipes with day and order information
+        const savedRecipes = [];
+        for (const recipe of recipes) {
+            // Using the recipeQuery, query the database to get the recipe_id
+            const recipeQuery = `
+                SELECT recipe_id FROM recipes 
+                WHERE recipe_url = $1;
+            `;
+            // Using the recipeQuery, query the database to get the recipe_id
+            const recipeResult = await db.query(recipeQuery, [recipe.sourceUrl]);
+
+            // Get the recipe_id from the result
+            const recipeId = recipeResult.rows[0].recipe_id;
+
+            // Save the recipe with day and order information
+            const saveQuery = `
+                INSERT INTO saved_recipes (
+                    user_id, 
+                    recipe_id, 
+                    plan_id,
+                    day_of_week,
+                    meal_order
+                )
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING saved_recipe_id;
+            `;
+            // Using the saveQuery, insert the recipe into the saved_recipes table
+            const savedResult = await db.query(saveQuery, [
+                userId,
+                recipeId,
+                planId,
+                recipe.day,
+                recipe.mealOrder
+            ]);
+
+            // Add the saved recipe to the savedRecipes array
+            savedRecipes.push({
+                saved_recipe_id: savedResult.rows[0].saved_recipe_id,
+                recipe_id: recipeId,
+                title: recipe.title,
+                day: recipe.day,
+                mealOrder: recipe.mealOrder
+            });
+        }
+
+        // Return the saved recipes to the frontend
+        res.status(201).json({
+            message: 'Recipes saved successfully',
+            planId,
+            savedRecipes
+        });
+    } catch (error) {
+        // Log the error
+        console.error('Error saving recipes:', error);
+        // Return a 500 error
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get saved recipes for a user - endpoint
+router.get('/saved', authenticateToken, async (req, res) => {
+    try {
+        // Get the user ID from the request user
+        const userId = req.user.user_id;
+
+        // Query the database to get the saved recipes
+        const query = `
+            SELECT 
+                r.*,
+                sr.saved_at,
+                sr.day_of_week,
+                sr.meal_order,
+                smp.plan_id,
+                smp.created_at as plan_created_at
+            FROM recipes r
+            JOIN saved_recipes sr ON r.recipe_id = sr.recipe_id
+            JOIN saved_meal_plans smp ON sr.plan_id = smp.plan_id
+            WHERE sr.user_id = $1
+            ORDER BY smp.created_at DESC, sr.day_of_week, sr.meal_order;
+        `;
+
+        // Using the query, query the database to get the saved recipes
+        const result = await db.query(query, [userId]);
+        
+        // Group recipes by plan_id
+        const plans = result.rows.reduce((acc, recipe) => {
+            if (!acc[recipe.plan_id]) {
+                acc[recipe.plan_id] = {
+                    planId: recipe.plan_id,
+                    createdAt: recipe.plan_created_at,
+                    recipes: {}
+                };
+            }
+
+            // Group recipes by day of week
+            const day = recipe.day_of_week;
+            if (!acc[recipe.plan_id].recipes[day]) {
+                acc[recipe.plan_id].recipes[day] = [];
+            }
+
+            // Add the recipe to the day of week
+            acc[recipe.plan_id].recipes[day].push({
+                ...recipe,
+                mealOrder: recipe.meal_order
+            });
+
+            // Return the plans
+            return acc;
+        }, {});
+
+        // Return the plans
+        res.json(Object.values(plans));
+    } catch (error) {
+        console.error('Error fetching saved recipes:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete a meal plan - endpoint
+// Called by the handleDeleteConfirm() function within FavouriteMealPlans.jsx -> when the user clicks "Delete Meal Plan"
+router.delete('/meal-plan/:planId', authenticateToken, async (req, res) => {
+    try {
+        // Get the planId from the request params
+        const { planId } = req.params;
+        // Get the user ID from the request user
+        const userId = req.user.user_id;
+
+        console.log('Delete request received for planId:', planId); // Debug log
+        console.log('User ID:', userId); // Debug log
+
+        // First verify that the meal plan belongs to the user
+        const verifyQuery = `
+            SELECT plan_id FROM saved_meal_plans
+            WHERE plan_id = $1 AND user_id = $2;
+        `;
+        // Query the database to verify that the meal plan belongs to the user that is trying to delete it
+        const verifyResult = await db.query(verifyQuery, [planId, userId]);
+        console.log('Verify result:', verifyResult.rows); // Debug log
+
+        // If the meal plan does not belong to the user, return a 404 error
+        if (verifyResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Meal plan not found or unauthorized' });
+        }
+
+        // Delete saved_recipes first (due to foreign key constraint)
+        // This is to ensure that the meal plan is deleted from the saved_recipes table
+        const deleteRecipesQuery = `
+            DELETE FROM saved_recipes
+            WHERE plan_id = $1
+            RETURNING *;
+        `;
+        // Using the deleteRecipesQuery, query the database to delete the saved_recipes
+        const deletedRecipes = await db.query(deleteRecipesQuery, [planId]);
+        console.log('Deleted recipes count:', deletedRecipes.rowCount); // Debug log
+
+        // Then delete the meal plan
+        // This is to ensure that the meal plan is deleted from the saved_meal_plans table
+        const deletePlanQuery = `
+            DELETE FROM saved_meal_plans
+            WHERE plan_id = $1 AND user_id = $2
+            RETURNING *;
+        `;
+        // Using the deletePlanQuery, query the database to delete the saved_meal_plans
+        const deletedPlan = await db.query(deletePlanQuery, [planId, userId]);
+        console.log('Deleted plan:', deletedPlan.rows[0]); // Debug log
+
+        // Return a success message
+        res.json({ 
+            message: 'Meal plan deleted successfully',
+            deletedPlanId: planId,
+            deletedRecipesCount: deletedRecipes.rowCount
+        });
+
+    } catch (error) {
+        // Log the error
+        console.error('Error deleting meal plan:', error);
+        // Return a 500 error
+        res.status(500).json({ 
+            error: 'Internal server error',
+            details: error.message
+        });
     }
 });
 

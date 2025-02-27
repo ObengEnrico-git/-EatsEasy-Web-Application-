@@ -1,16 +1,3 @@
-/* Reset and base styles */
-html,
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #d9edda;
-    color: #333;
-    min-height: 100%;
-    /* overflow-y: auto; */
-}
-
-
 /* Main container for the meal plan */
 .mealplan-container {
     padding: 40px 5%;
@@ -46,6 +33,11 @@ body {
     color: #75b193;
     font-size: 1.2rem;
     cursor: pointer;
+}
+
+.info-button:hover {
+    color: #1e5c3d;
+    text-decoration: underline;
 }
 
 /* .info-button:hover {
@@ -260,3 +252,42 @@ body {
     z-index: 10;
     /* Ensure it's above other elements */
 }
+
+.refresh-icon {
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    z-index: 10;
+}
+
+.refresh-icon.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.refresh-icon:hover {
+    color: #1e5c3d;
+}
+
+.refresh-button-favourite {
+    background-color: #2f855a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+
+}
+
+.refresh-button-favourite:hover {
+    background-color: #246c48;
+    text-decoration: underline;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

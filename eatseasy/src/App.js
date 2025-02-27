@@ -9,7 +9,8 @@ const MealPlan = lazy(() => import('./pages/MealPlan'));
 const LoginPage = lazy(() => import('./pages/userAuthentication/LoginPage'));
 const Signup = lazy(() => import('./pages/userAuthentication/Signup'));
 const UserProfile = lazy(() => import('./pages/userProfile/UserProfile'));
-const Loader = lazy(() => import('./pages/Loader')); //loading screen in between pages 
+const Loader = lazy(() => import('./pages/Loader')); //loading screen in between pages
+const SavedMealPlan = lazy(() => import('./pages/userProfile/SavedMealPlan'));
 
 
 
@@ -25,6 +26,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/userprofile" element={<UserProfile />} />
+            <Route path="/saved-mealplan" element={<SavedMealPlan />} />
           </Routes>
         </Suspense>
       </div>

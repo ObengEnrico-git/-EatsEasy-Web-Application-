@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense, useCallback } from "react";
+import React, { useState, useEffect, lazy, Suspense} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import "../styles/MealPlan.css";
@@ -6,6 +6,11 @@ import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { FiRefreshCw } from "react-icons/fi";
+import { Tooltip } from '@mui/material';
+import { Snackbar, Button } from '@mui/material';
+import MuiAlert from '@mui/material/Alert';
+
 const Loader = lazy(() => import("./Loader"));
 
 
@@ -35,11 +40,12 @@ const MealPlan = () => {
     setVisibleDay(visibleDay === day ? null : day);
   };
 
-
-  const [isHovered, setIsHovered] = useState(false);
-
   const [hoveredHeart, setHoveredHeart] = useState(null);
   const [favouritedMeals, setFavouritedMeals] = useState({});
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -54,63 +60,7 @@ const MealPlan = () => {
       document.body.style.overflow = "auto";
     };
   }, [showInfoPanel]);
-
   
-  // Store recipes in the database
-  // This function is used to store recipes in the database
-  const storeRecipes = useCallback(async (meals) => {
-    // If the user is not authenticated, skip recipe storage
-    if (!isAuthenticated) {
-      console.log('User not authenticated, skipping recipe storage');
-      return;
-    }
-
-    // Get the token from local storage (for authentication)
-    const token = localStorage.getItem('token');
-
-    // Store each recipe in the database
-    const storeRecipePromises = meals.map(meal => {
-      console.log('Storing recipe:', meal.title);
-
-      return axios.post("http://localhost:8000/api/recipes", 
-        {
-          recipeId: meal.id,
-          title: meal.title,
-          imageUrl: `https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`,
-          readyInMinutes: meal.readyInMinutes,
-          servings: meal.servings,
-          sourceUrl: meal.sourceUrl
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      ).then(response => {
-        if (response.status === 200) {
-          console.log(`Recipe "${meal.title}" already exists with ID: ${response.data.recipeId}`);
-        } else {
-          console.log(`Recipe "${meal.title}" stored with ID: ${response.data.recipeId}`);
-        }
-      }).catch(error => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          console.log('Authentication error, clearing token');
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
-        } else {
-          console.error('Error storing recipe:', meal.title, error);
-        }
-        return null;
-      });
-    });
-
-    try {
-      await Promise.allSettled(storeRecipePromises);
-    } catch (error) {
-      console.error('Error processing recipes:', error);
-    }
-  }, [isAuthenticated]);
-
   const fetchNewMealPlan = async () => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -131,13 +81,6 @@ const MealPlan = () => {
         },
       });
 
-      // Store recipes if user is authenticated
-      if (response.data.week) {
-        Object.values(response.data.week).forEach(day => {
-          storeRecipes(day.meals);
-        });
-      }
-      
       setMealData(response.data);
     } catch (error) {
       console.error("Error fetching new meal plan:", error);
@@ -170,11 +113,6 @@ const MealPlan = () => {
         },
       });
 
-      // Store recipes if user is authenticated
-      if (response.data.meals) {
-        await storeRecipes(response.data.meals);
-      }
-      
       setMealData((prevMealData) => ({
         ...prevMealData,
         week: {
@@ -239,16 +177,65 @@ const MealPlan = () => {
     }
   };
 
-  // Store initial recipes if user is authenticated
-  // This function calls the storeRecipes function (See above)
-  // This function is called on load of the page
-  useEffect(() => {
-    if (initialMealData?.week && isAuthenticated) {
-      Object.values(initialMealData.week).forEach(day => {
-        storeRecipes(day.meals);
-      });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
     }
-  }, [initialMealData, isAuthenticated, storeRecipes]);
+    setOpenSnackbar(false);
+  };
+
+  const handleFavoriteAll = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Collect all recipes from the meal plan with day and order information
+      const allRecipes = [];
+      Object.entries(mealData.week).forEach(([day, dayData]) => {
+        dayData.meals.forEach((meal, index) => {
+          allRecipes.push({
+            title: meal.title,
+            imageUrl: `https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`,
+            readyInMinutes: meal.readyInMinutes,
+            servings: meal.servings,
+            sourceUrl: meal.sourceUrl,
+            day: day.toLowerCase(), // e.g., 'monday'
+            mealOrder: index // 0 for breakfast, 1 for lunch, 2 for dinner
+          });
+        });
+      });
+
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8000/api/recipes/save-all',
+        { 
+          recipes: allRecipes,
+          weekData: mealData.week
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      setSaveSuccess(true);
+      setOpenSnackbar(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving recipes:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        navigate('/login');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div>
@@ -287,14 +274,33 @@ const MealPlan = () => {
         )}
         <h1>Recommended Meals</h1>
 
-        <button
-          className="refresh-button"
-          onClick={refreshMealPlan}
-          aria-label="Refresh meal plan"
-          disabled={isLoading}
-        >
-          {isLoading ? "Refreshing..." : "Refresh All Meals"}
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            className="refresh-button"
+            onClick={refreshMealPlan}
+            aria-label="Refresh meal plan"
+            disabled={isLoading}
+            // style={{
+            //   animation: isLoading ? 'spin 1s linear infinite' : 'none'
+            // }}  
+          >
+            {isLoading ? "Refreshing..." : "Refresh All Meals"}
+          </button>
+
+          <button
+            className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+              isSaving || !isAuthenticated
+                ? 'bg-gray-300 cursor-not-allowed'
+                : saveSuccess
+                ? 'bg-green-500 text-white'
+                : 'bg-[#1f9b48] hover:bg-[#194b34] text-white'
+            }`}
+            onClick={handleFavoriteAll}
+            disabled={isSaving || !isAuthenticated}
+          >
+            {isSaving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Favourite All Meals'}
+          </button>
+        </div>
         {!mealData || !mealData.week ? (
           <>
             <p>No meal data available</p>
@@ -310,11 +316,6 @@ const MealPlan = () => {
                   className="info-button"
                   onClick={() => toggleNutrients(day)}
                   aria-label={`Toggle nutrients for ${day}`}
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  style={{
-                    textDecoration: isHovered ? "underline" : "none",
-                  }}
                 >
                   More Information
                 </button>
@@ -323,7 +324,13 @@ const MealPlan = () => {
                   aria-label={`Refresh ${day} meal plan`}
                   disabled={loadingDays[day]}
                 >
-                  {loadingDays[day] ? "Refreshing..." : "Refresh"}
+                  <Tooltip title={`Refresh ${day.charAt(0).toUpperCase() + day.slice(1) }'s meal plan`} placement="top">
+                    <div>  {/* Wrapper div needed for Tooltip to work with disabled button */}
+                      <FiRefreshCw 
+                        className={`refresh-icon ${loadingDays[day] ? 'spinning' : ''}`}
+                      />
+                    </div>
+                  </Tooltip>
                 </button>
               </h2>
               <div className="meal-list">
@@ -403,6 +410,34 @@ const MealPlan = () => {
           ))
         )}
       </div>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          severity="success"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => {
+                navigate('/userprofile');
+                handleCloseSnackbar();
+              }}
+            >
+              View
+            </Button>
+          }
+        >
+          You can view your favourite meal plan by clicking "View"
+          <br />
+          Saved on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString().slice(0, 5)}
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };
