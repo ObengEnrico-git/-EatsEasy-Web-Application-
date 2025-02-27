@@ -5,6 +5,7 @@ import "../styles/MealPlan.css";
 import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 const Loader = lazy(() => import("./Loader"));
 
 
@@ -16,17 +17,17 @@ const MealPlan = () => {
     targetCalories,
     diet,
     allergen,
-    
+
   } = location.state || {};
 
- 
-  const [mealData, setMealData] = useState(initialMealData );
+
+  const [mealData, setMealData] = useState(initialMealData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState({});
   const [viewIsLoading, setViewIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
-  
+
   const [visibleDay, setVisibleDay] = useState(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
 
@@ -36,6 +37,9 @@ const MealPlan = () => {
 
 
   const [isHovered, setIsHovered] = useState(false);
+
+  const [hoveredHeart, setHoveredHeart] = useState(null);
+  const [favouritedMeals, setFavouritedMeals] = useState({});
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -123,6 +127,7 @@ const MealPlan = () => {
           targetCalories: Math.round(targetCalories),
           targetDiet: diet,
           targetAllergen: allergen.value,
+
         },
       });
 
@@ -147,7 +152,7 @@ const MealPlan = () => {
     }
   };
 
-  
+
   const fetchDayPlan = async (day) => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -156,7 +161,7 @@ const MealPlan = () => {
         return;
       }
       setLoadingDays(prev => ({ ...prev, [day]: true }));
-      
+
       const response = await axios.get("http://localhost:8000/daymealplan", {
         params: {
           targetCalories: Math.round(targetCalories),
@@ -198,6 +203,13 @@ const MealPlan = () => {
     navigate("/");
   };
 
+  const toggleFavourite = (mealId) => {
+    setFavouritedMeals((prev) => ({
+      ...prev,
+      [mealId]: !prev[mealId],
+    }));
+  };
+
 
   const handleViewRecipe = async (url) => {
     setViewIsLoading(true);
@@ -214,7 +226,7 @@ const MealPlan = () => {
       newWindow.document.close();
 
       newWindow.onhashchange = () => { // replaces anything after the # on url dynamically removes anything after to "" (empty) 
-        newWindow.history.replaceState( 
+        newWindow.history.replaceState(
           null,
           "",
           newWindow.location.pathname + newWindow.location.search
@@ -274,7 +286,7 @@ const MealPlan = () => {
           </div>
         )}
         <h1>Recommended Meals</h1>
-      
+
         <button
           className="refresh-button"
           onClick={refreshMealPlan}
@@ -303,7 +315,7 @@ const MealPlan = () => {
                   style={{
                     textDecoration: isHovered ? "underline" : "none",
                   }}
-                  >
+                >
                   More Information
                 </button>
                 <button
@@ -317,14 +329,23 @@ const MealPlan = () => {
               <div className="meal-list">
                 {mealData.week[day].meals.map((meal, index) => (
                   <div className="meal-card" key={meal.id}>
-                    <div style={{ 
-                      backgroundColor: "#38a169", 
-                      color: "white", 
+                    <div
+                      className="heart-icon"
+                      onMouseEnter={() => setHoveredHeart(meal.id)} // Track hover
+                      onMouseLeave={() => setHoveredHeart(null)} // Reset on unhover
+                      onClick={() => toggleFavourite(meal.id)}
+                    >
+                      {favouritedMeals[meal.id] || hoveredHeart === meal.id ? <FaHeart color="red" /> : <FaRegHeart />}
+                    </div>
+
+                    <div style={{
+                      backgroundColor: "#38a169",
+                      color: "white",
                       padding: "4px 8px",
                       borderRadius: "4px",
                       display: "inline-block",
                       textAlign: "left",
-                      fontWeight: "bold", 
+                      fontWeight: "bold",
                       marginBottom: "8px",
                       fontSize: "0.9rem"
                     }}>
