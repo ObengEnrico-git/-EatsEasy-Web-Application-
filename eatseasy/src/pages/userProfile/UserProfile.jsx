@@ -12,8 +12,8 @@ import {
 import { useNavigate } from "react-router-dom"
 import Navbar from "../NavBar"
 import NotLoggedIn from "./NotLoggedIn"
-import FavoriteMealPlans from "./FavoriteMealPlans"
-import FavoriteRecipes from "./FavouriteRecipes"
+import FavouriteMealPlans from "./FavouriteMealPlans"
+import FavouriteRecipes from "./FavouriteRecipes"
 import UserBmi from "./UserBmi"
 import CheckIcon from '@mui/icons-material/Check';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -103,6 +103,11 @@ const UserProfile = () => {
       navigate('/login')
       // 1000 milliseconds = 1 second
     }, 1000)
+  }
+
+  const uploadAvatar = async () => {
+    // Navigate to the upload avatar page
+    navigate('/upload-avatar')
   }
 
   const handleRecipeClick = (recipeId) => {
@@ -206,6 +211,7 @@ const UserProfile = () => {
                   <Avatar
                     src={user?.avatar || "/placeholder.svg?height=120&width=120"}
                     className="w-24 h-24 md:w-28 md:h-28 border-4 border-[#2d6a4f] transform transition-transform hover:scale-105"
+                    onClick={() => uploadAvatar()}
                   />
                   <div className="flex flex-col gap-2 text-center md:text-left">
                     <Typography variant="h3" className="font-bold mb-2 text-2xl md:text-3xl">
@@ -270,7 +276,7 @@ const UserProfile = () => {
             <UserBmi bmiData={bmiData} />
             
             {/* Saved Weekly Meal Plans using FavoriteMealPlans component */}
-            <FavoriteMealPlans 
+            <FavouriteMealPlans 
               mealPlans={savedRecipes}
               onHover={setHoveredCard}
               hoveredCard={hoveredCard}
@@ -278,7 +284,7 @@ const UserProfile = () => {
               onPlanDeleted={handlePlanDeleted}
             />
 
-            <FavoriteRecipes 
+            <FavouriteRecipes 
               recipes={favoriteRecipes}
               onHover={setHoveredCard}
               hoveredCard={hoveredCard}

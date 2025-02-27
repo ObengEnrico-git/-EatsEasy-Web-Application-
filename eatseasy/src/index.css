@@ -2,3 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global reset styles */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #d9edda;
+    color: #333;
+    min-height: 100%;
+}
+

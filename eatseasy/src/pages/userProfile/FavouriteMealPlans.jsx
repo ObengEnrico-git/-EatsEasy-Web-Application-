@@ -106,8 +106,9 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
   return (
     <Box mb={12}>
       <Typography variant="h4" className="mb-8 text-[#1b4332] font-bold">
-        Saved Weekly Meal Plans
+        Saved Favourite Meal Plans
       </Typography>
+      <br></br>
       <Box 
         display="grid" 
         gridTemplateColumns={{
