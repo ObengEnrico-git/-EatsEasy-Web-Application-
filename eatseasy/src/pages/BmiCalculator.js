@@ -80,30 +80,6 @@ const BmiCalculator = () => {
   const [weightUnit, setWeightUnit] = usePersistedState("weightUnit", "kg");
   const [gender, setGender] = usePersistedState("gender", "");
 
-    useEffect(() => {
-        const storedBMI = Cookies.get('bmiData');
-        if (storedBMI) {
-          try {
-            const parsedData = JSON.parse(storedBMI);
-            if (parsedData && typeof parsedData === 'object') {
-              setBmi(parsedData.bmi || '');
-              setStatus(parsedData.status || '');
-              setWeightGoal(parsedData.weightGoal || '');
-              setWeight(parsedData.weight || '');
-              setWeightUnit(parsedData.weightUnit || 'kg');
-              setGender(parsedData.gender || '');
-              setHeight(parsedData.height || '');
-              setHeightUnit(parsedData.heightUnit || 'cm');
-              setAge(parsedData.age || '');
-              setOptionPicked(parsedData.optionPicked || '');
-              setIsCalculated(true);
-            }
-          } catch (error) {
-            console.error('Error parsing BMI data from cookies:', error);
-          }
-        }
-      }, []);
-
   const [height, setHeight] = usePersistedState("height", "");
 
   const [heightUnit, setHeightUnit] = usePersistedState("heightUnit", "cm");
@@ -124,6 +100,30 @@ const BmiCalculator = () => {
     "selectedAllergens",
     []
   );
+
+  useEffect(() => {
+    const storedBMI = Cookies.get('bmiData');
+    if (storedBMI) {
+      try {
+        const parsedData = JSON.parse(storedBMI);
+        if (parsedData && typeof parsedData === 'object') {
+          setBmi(parsedData.bmi || '');
+          setStatus(parsedData.status || '');
+          setWeightGoal(parsedData.weightGoal || '');
+          setWeight(parsedData.weight || '');
+          setWeightUnit(parsedData.weightUnit || 'kg');
+          setGender(parsedData.gender || '');
+          setHeight(parsedData.height || '');
+          setHeightUnit(parsedData.heightUnit || 'cm');
+          setAge(parsedData.age || '');
+          setOptionPicked(parsedData.optionPicked || '');
+          setIsCalculated(true);
+        }
+      } catch (error) {
+        console.error('Error parsing BMI data from cookies:', error);
+      }
+    }
+  }, [setBmi, setStatus, setWeightGoal, setWeight, setWeightUnit, setGender, setHeight, setHeightUnit, setAge, setOptionPicked, setIsCalculated]);
 
   const theme = useTheme();
 
