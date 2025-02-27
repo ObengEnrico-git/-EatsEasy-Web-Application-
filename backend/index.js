@@ -6,6 +6,7 @@ const db = require("./database");
 const auth = require("./auth");
 const rateLimit = require("express-rate-limit");
 const { query, validationResult } = require("express-validator");
+const recipesRouter = require('./recipes');
 
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
@@ -457,6 +458,9 @@ app.get("/fetchModifiedPage", async (req, res) => {
     res.status(500).send("Error processing the page");
   }
 });
+
+// Mount routers with proper base paths
+app.use('/api/recipes', recipesRouter);
 
 // Export app for testing
 module.exports = app;

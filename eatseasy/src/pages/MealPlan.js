@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import "../styles/MealPlan.css";
@@ -25,6 +25,7 @@ const MealPlan = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState({});
   const [viewIsLoading, setViewIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
 
   const [visibleDay, setVisibleDay] = useState(null);
@@ -54,6 +55,61 @@ const MealPlan = () => {
     };
   }, [showInfoPanel]);
 
+  
+  // Store recipes in the database
+  // This function is used to store recipes in the database
+  const storeRecipes = useCallback(async (meals) => {
+    // If the user is not authenticated, skip recipe storage
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping recipe storage');
+      return;
+    }
+
+    // Get the token from local storage (for authentication)
+    const token = localStorage.getItem('token');
+
+    // Store each recipe in the database
+    const storeRecipePromises = meals.map(meal => {
+      console.log('Storing recipe:', meal.title);
+
+      return axios.post("http://localhost:8000/api/recipes", 
+        {
+          recipeId: meal.id,
+          title: meal.title,
+          imageUrl: `https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`,
+          readyInMinutes: meal.readyInMinutes,
+          servings: meal.servings,
+          sourceUrl: meal.sourceUrl
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      ).then(response => {
+        if (response.status === 200) {
+          console.log(`Recipe "${meal.title}" already exists with ID: ${response.data.recipeId}`);
+        } else {
+          console.log(`Recipe "${meal.title}" stored with ID: ${response.data.recipeId}`);
+        }
+      }).catch(error => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log('Authentication error, clearing token');
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        } else {
+          console.error('Error storing recipe:', meal.title, error);
+        }
+        return null;
+      });
+    });
+
+    try {
+      await Promise.allSettled(storeRecipePromises);
+    } catch (error) {
+      console.error('Error processing recipes:', error);
+    }
+  }, [isAuthenticated]);
 
   const fetchNewMealPlan = async () => {
     try {
@@ -74,6 +130,14 @@ const MealPlan = () => {
 
         },
       });
+
+      // Store recipes if user is authenticated
+      if (response.data.week) {
+        Object.values(response.data.week).forEach(day => {
+          storeRecipes(day.meals);
+        });
+      }
+      
       setMealData(response.data);
     } catch (error) {
       console.error("Error fetching new meal plan:", error);
@@ -106,6 +170,11 @@ const MealPlan = () => {
         },
       });
 
+      // Store recipes if user is authenticated
+      if (response.data.meals) {
+        await storeRecipes(response.data.meals);
+      }
+      
       setMealData((prevMealData) => ({
         ...prevMealData,
         week: {
@@ -169,6 +238,17 @@ const MealPlan = () => {
       setViewIsLoading(false);
     }
   };
+
+  // Store initial recipes if user is authenticated
+  // This function calls the storeRecipes function (See above)
+  // This function is called on load of the page
+  useEffect(() => {
+    if (initialMealData?.week && isAuthenticated) {
+      Object.values(initialMealData.week).forEach(day => {
+        storeRecipes(day.meals);
+      });
+    }
+  }, [initialMealData, isAuthenticated, storeRecipes]);
 
   return (
     <div>
