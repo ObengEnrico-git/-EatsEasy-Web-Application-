@@ -9,8 +9,11 @@
 include:
   - local: .gitlab-ci-config/.gitlab-ci-test.yml
   - local: .gitlab-ci-config/.gitlab-ci-build.yml
+  - local: .gitlab-ci-config/.gitlab-ci-sync.yml
 
 stages:
   - test
   - build
+  - test-sync
+  - deploy    
 

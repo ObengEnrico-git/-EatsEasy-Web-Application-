@@ -1,16 +1,3 @@
-/* Reset and base styles */
-html,
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #a7c3a9;
-    color: #333;
-    min-height: 100%;
-    /* overflow-y: auto; */
-}
-
-
 /* Main container for the meal plan */
 .mealplan-container {
     padding: 40px 5%;
@@ -49,8 +36,13 @@ body {
 }
 
 .info-button:hover {
-    color: #ddfaea;
+    color: #1e5c3d;
+    text-decoration: underline;
 }
+
+/* .info-button:hover {
+    color: #ddfaea;
+} */
 
 /* Meal list as a grid */
 .meal-list {
@@ -63,6 +55,7 @@ body {
 .meal-card {
     border: 1px solid #ddd;
     border-radius: 10px;
+    position: relative;
     padding: 20px;
     background-color: #fff;
     text-align: center;
@@ -224,3 +217,77 @@ body {
     margin-right: 8px;
     font-size: 1.2rem;
 }
+
+.loader-overlay {
+    position: fixed;
+    /* This makes the element fixed relative to the viewport */
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    /* 100% of the viewport width */
+    height: 100%;
+    /* 100% of the viewport height */
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Center content vertically as well */
+    z-index: 9999;
+    text-align: center;
+    overflow: hidden;
+}
+
+.scraped-recipe-content {
+    background-color: white;
+}
+
+.heart-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    z-index: 10;
+    /* Ensure it's above other elements */
+}
+
+.refresh-icon {
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    z-index: 10;
+}
+
+.refresh-icon.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.refresh-icon:hover {
+    color: #1e5c3d;
+}
+
+.refresh-button-favourite {
+    background-color: #2f855a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+
+}
+
+.refresh-button-favourite:hover {
+    background-color: #246c48;
+    text-decoration: underline;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

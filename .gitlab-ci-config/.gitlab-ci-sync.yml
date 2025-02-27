@@ -1,0 +1,52 @@
+stages:
+  - test-sync
+  - deploy
+
+test_sync:
+  stage: test-sync
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run only for merge requests
+  script:
+    - |
+      echo "Testing sync process (dry run)..."
+      apt-get update && apt-get install -y git
+      git config --global user.name "GitLab CI/CD"
+      git config --global user.email "gitlab@example.com"
+
+      # Simulate the sync process without pushing
+      git clone https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git backend-temp
+      cp -r backend/* backend-temp/
+      cd backend-temp
+      echo "Dry run: Changes would be pushed to GitHub."
+      git status
+      cd ..
+      rm -rf backend-temp
+
+deploy_to_github:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"' # Run only when changes are merged into main
+  script:
+    - |
+      echo "Deploying backend folder to GitHub..."
+      apt-get update && apt-get install -y git
+      git config --global user.name "GitLab CI/CD"
+      git config --global user.email "gitlab@example.com"
+
+      # Clone the GitHub repository (eatseasybackend) into a temporary directory
+      git clone https://$GITHUB_TOKEN@github.com/Daniyal-Shahid/eatseasybackend.git backend-temp
+
+      # Copy the backend folder from the GitLab repository to the temporary directory
+      cp -r backend/* backend-temp/
+
+      # Navigate to the temporary directory
+      cd backend-temp
+
+      # Add, commit, and push the changes to GitHub
+      git add .
+      git commit -m "Update backend folder from GitLab pipeline"
+      git push origin main
+
+      # Clean up
+      cd ..
+      rm -rf backend-temp

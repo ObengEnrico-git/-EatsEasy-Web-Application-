@@ -9,8 +9,9 @@ build-frontend:
     - cd eatseasy
     - npm install
     - npm run build
-  only:
-    - branches
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
 
 # Build Backend
 build-backend:
@@ -23,5 +24,6 @@ build-backend:
     - sleep 5
     - if ! curl --silent http://localhost:8000 | grep "Backend running on http://localhost:8000"; then exit 1; fi
     - pkill -f "node index.js"  
-  only:
-    - branches
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"' 
