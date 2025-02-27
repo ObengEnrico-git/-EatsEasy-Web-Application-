@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import axios from 'axios';
 //import './App.css';
 
 // Lazy loading (only loads the requried import for that time imporves performance)
@@ -11,8 +12,6 @@ const Signup = lazy(() => import('./pages/userAuthentication/Signup'));
 const UserProfile = lazy(() => import('./pages/userProfile/UserProfile'));
 const Loader = lazy(() => import('./pages/Loader')); //loading screen in between pages
 const SavedMealPlan = lazy(() => import('./pages/userProfile/SavedMealPlan'));
-
-import axios from 'axios';
 
 //axios
 axios.defaults.withCredentials = true;
