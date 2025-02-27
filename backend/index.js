@@ -209,9 +209,13 @@ app.post("/login", async (req, res) => {
         });
 
         res.status(200).json({ 
-            message: 'Login successful', 
-            user: { user_id: user.user_id, email: user.email } 
-        });
+          message: 'Login successful', 
+          user: { 
+              user_id: user.user_id, 
+              email: user.email,
+              token: user.token, // Include the token here
+          } 
+      });
 
     } catch (err) {
         res.status(401).json({ error: err.message });
