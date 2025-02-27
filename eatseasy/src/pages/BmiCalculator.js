@@ -5,6 +5,7 @@ import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
 import InterestSelector from "./components/FormCompontents/IntolerancesForm.js";
 import { usePersistedState } from "./usePersistedState.tsx";
+import Cookies from "js-cookie";
 import axios from "axios";
 import LinearProgress, {
   linearProgressClasses,
@@ -78,7 +79,7 @@ const BmiCalculator = () => {
   const [weight, setWeight] = usePersistedState("weight", "");
   const [weightUnit, setWeightUnit] = usePersistedState("weightUnit", "kg");
   const [gender, setGender] = usePersistedState("gender", "");
-import Cookies from "js-cookie";
+
     useEffect(() => {
         const storedBMI = Cookies.get('bmiData');
         if (storedBMI) {

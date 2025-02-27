@@ -47,7 +47,6 @@ const allowedAllergens = [
   "Tree Nut",
   "Wheat",
 ];
-const allowedDomains = ['https://api.spoonacular.com'];
 
 // so this function only allowed for every 15 minutes only allows 10 requests
 //error status code: 429
