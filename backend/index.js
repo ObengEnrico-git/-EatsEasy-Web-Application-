@@ -6,12 +6,13 @@ const db = require("./database");
 const auth = require("./auth");
 const rateLimit = require("express-rate-limit");
 const { query, validationResult } = require("express-validator");
+const cookieParser = require('cookie-parser');
 const recipesRouter = require('./recipes');
 
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
-const cookieParser = require('cookie-parser');
+
 
 dotenv.config();
 
