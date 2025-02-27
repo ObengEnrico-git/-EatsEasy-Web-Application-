@@ -5,9 +5,9 @@ import "../styles/MealPlan.css";
 import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 const Loader = lazy(() => import("./Loader"));
 
-import { FaRegHeart, FaHeart } from "react-icons/fa";
 
 const MealPlan = () => {
   const location = useLocation();
@@ -134,6 +134,13 @@ const MealPlan = () => {
     navigate("/");
   };
 
+  const toggleFavourite = (mealId) => {
+    setFavouritedMeals((prev) => ({
+      ...prev,
+      [mealId]: !prev[mealId],
+    }));
+  };
+
 
   const handleViewRecipe = async (url) => {
     setViewIsLoading(true);
@@ -150,7 +157,7 @@ const MealPlan = () => {
       newWindow.document.close();
 
       newWindow.onhashchange = () => { // replaces anything after the # on url dynamically removes anything after to "" (empty) 
-        newWindow.history.replaceState( 
+        newWindow.history.replaceState(
           null,
           "",
           newWindow.location.pathname + newWindow.location.search
@@ -161,11 +168,6 @@ const MealPlan = () => {
     } finally {
       setViewIsLoading(false);
     }
-  const toggleFavourite = (mealId) => {
-    setFavouritedMeals((prev) => ({
-      ...prev,
-      [mealId]: !prev[mealId],
-    }));
   };
 
   return (
