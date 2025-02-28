@@ -236,7 +236,7 @@ const BmiCalculator = () => {
           weight_unit: weightUnit,
           height,
           height_unit: heightUnit,
-          activity_level: optionPicked.value,
+          activity_level: optionPicked,
           diet_preferences: diet,
           intolerances: selectedAllergens,
           bmi: parseFloat(bmiValue),
@@ -255,7 +255,7 @@ const BmiCalculator = () => {
         weight_unit: weightUnit,
         height,
         height_unit: heightUnit,
-        activity_level: optionPicked.value,
+        activity_level: optionPicked,
         diet_preferences: diet,
         intolerances: selectedAllergens,
         bmi: parseFloat(bmiValue),
@@ -289,7 +289,7 @@ const BmiCalculator = () => {
     }
 
     let activityMultiplier = 1.2;
-    switch (optionPicked.value) {
+    switch (optionPicked) {
       case "Sedentary: little or no exercise":
         activityMultiplier = 1.2;
         break;
@@ -490,7 +490,7 @@ const BmiCalculator = () => {
                 <FloatingLabelInput
                   id="activity-level"
                   label="Activity Level"
-                  type="select" // This makes it render a select dropdown
+                  type="select"
                   value={optionPicked}
                   onChange={(e) => setOptionPicked(e.target.value)}
                   options={[
