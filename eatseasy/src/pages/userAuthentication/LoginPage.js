@@ -6,7 +6,8 @@ import AppTheme from './shared-theme/AppTheme';
 import ColorModeSelect from './shared-theme/ColorModeSelect';
 import SignInCard from './shared-theme/loginComponents/SignInCard';
 import Content from './shared-theme/loginComponents/Content';
-import { login } from '../../auth';
+import { login } from '../../auth'
+
 
 export default function SignInSide(props) {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ export default function SignInSide(props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
-  //Doesn't fully work yet
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -25,7 +25,7 @@ export default function SignInSide(props) {
       if (result && result.message === 'Login successful') {
         console.log('Login successful');
         console.log('Redirecting to /'); 
-        navigate('/');
+        navigate('/BmiCalculator');
         console.log('Redirect completed');
       } else {
         console.error('Login failed: No result returned');

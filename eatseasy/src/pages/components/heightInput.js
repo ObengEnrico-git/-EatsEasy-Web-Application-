@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FloatingLabelInput from "./componentStyles/FloatingLabelInput";
 import {
   FormControl,
@@ -10,35 +10,71 @@ import {
 import "../../styles/BmiCalculator.css";
 
 
-export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange, label }) {
+export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange, label, value }) {
   const [feet, setFeet] = useState("");
   const [inches, setInches] = useState("");
   const [measurements, setMeasurements] = useState("");
   const [error, setError] = useState("");
+  const originalUnitRef = useRef(unit);
 
   const measurementsOptions = [
     { value: "cm", label: "Centimeters (cm)" },
     { value: "ft", label: "Feet (ft)" },
   ];
 
+
+  // On mount, if a value is provided, prefill the state
+  useEffect(() => {
+    if (value) {
+      if (unit === "cm") {
+        setMeasurements(value);
+      } else if (unit === "ft") {
+        const numericValue = parseFloat(value);
+        if (!isNaN(numericValue)) {
+          const totalInches = numericValue / 2.54;
+          const ft = Math.floor(totalInches / 12);
+          const inch = Math.round(totalInches % 12);
+          setFeet(ft.toString());
+          setInches(inch.toString());
+          // Also store a combined value (in ft) for the parent if needed
+          setMeasurements(ft + inch / 12);
+        }
+      }
+      if (onHeightChange) {
+        onHeightChange(value);
+      }
+    }
+  }, [value, unit, onHeightChange]);
+
   const handleUnitChange = (e) => {
     const newUnit = e.target.value;
     setError("");
+    if (originalUnitRef.current !== newUnit && measurements !== "") {
+      // Convert the current measurement to the new unit
+      const numericValue = parseFloat(measurements);
+      if (!isNaN(numericValue)) {
+        if (newUnit === "ft") {
+          // Convert from cm to ft: use 1 cm = 0.393701 in
+          const totalInches = numericValue * 0.393701;
+          const ft = Math.floor(totalInches / 12);
+          const inch = Math.round(totalInches % 12);
+          setFeet(ft.toString());
+          setInches(inch.toString());
+          // Optionally update measurements to a ft value (optional)
+          setMeasurements(ft + inch / 12);
+        } else {
+          // Convert from ft to cm: assume measurements is in ft
+          // (if measurements is stored as a number in ft, convert back to cm)
+          const cmValue = numericValue * 30.48;
+          setMeasurements(cmValue.toFixed(2));
+        }
+      }
+      originalUnitRef.current = newUnit;
+    }
     if (UnitChange) {
       UnitChange(newUnit);
     }
   };
-
-  // Convert feet and inches to total height value
-  useEffect(() => {
-    if (unit === "ft") {
-      const totalHeight = feet && inches ? parseFloat(feet) + parseFloat(inches) / 12 : "";
-      setMeasurements(totalHeight);
-      if (onHeightChange) {
-        onHeightChange(totalHeight);
-      }
-    }
-  }, [feet, inches, unit, onHeightChange]);
 
   const handleNumberInput = (e, setter) => {
     const value = e.target.value;
@@ -70,22 +106,23 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
   // If converting from ft to cm, multiply by 30.48.
   const convertMeasurements = (value, toUnit) => {
     const numericValue = parseFloat(value);
+    if (isNaN(numericValue)) return "";
     if (toUnit === "ft") {
-      return (numericValue / 30.48).toFixed(2);
+      return (numericValue * 0.393701).toFixed(2); // convert cm to inches then format later
     } else {
-      return (numericValue * 30.48).toFixed(2);
+      return (numericValue / 0.393701).toFixed(2); // convert inches to cm
     }
   };
 
   // When the unit changes, convert the current measurement accordingly.
   useEffect(() => {
-    setMeasurements((prev) => {
-      if (prev !== "") {
+    if (originalUnitRef.current !== unit && measurements !== "") {
+      setMeasurements((prev) => {
         return convertMeasurements(prev, unit);
-      }
-      return prev;
-    });
-  }, [unit]);
+      });
+      originalUnitRef.current = unit;
+    }
+  }, [unit, measurements]);
 
   // Lift state: notify the parent when measurements change.
   useEffect(() => {

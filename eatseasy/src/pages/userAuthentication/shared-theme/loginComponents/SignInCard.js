@@ -18,10 +18,10 @@ import { GoogleIcon, FacebookIcon } from './CustomIcons';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import NavBar from '../../../NavBar';
-import axios from 'axios';
 import { useState } from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../../../../auth';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -43,6 +43,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 export default function SignInCard() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
@@ -65,48 +67,63 @@ export default function SignInCard() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
+    // Validate form inputs
     const isValid = validateInputs();
-    
-    if (!isValid) {
-      return;
-    }
-    
-    const emailInput = event.target.querySelector('#email');
-    const passwordInput = event.target.querySelector('#password');
-
-    if (!emailInput || !passwordInput) {
-      console.error('Required form fields are missing');
-      return;
-    }
-
-    const formData = {
-      email: emailInput.value,
-      password: passwordInput.value,
-    };
-
+    if (!isValid) return;
+  
     try {
-      const response = await axios.post('http://localhost:8000/login', formData);
-      
-      // Store the token in localStorage
-      localStorage.setItem('token', response.data.user.token);
-      
-      setAlertInfo({
-        show: true,
-        type: 'success',
-        message: 'Successfully logged in'
-      });
+      // Get form data using both state and DOM elements for redundancy
+      const enteredEmail = event.target.elements.email?.value || email;
+const enteredPassword = event.target.elements.password?.value || password;
 
-      // Navigate to user profile after successful login
-      // This is a temporary route to test the profile page
-      // TODO: Redirect to either user profile or BMI calculator? 
-      navigate('/userprofile');
+
+  
+      // Use the login utility function
+      const result = await login(enteredEmail, enteredPassword);
       
+      if (result?.message === 'Login successful') {
+        // Store token from both possible response structures
+        const token = result.user?.token || result.token;
+        if (token) {
+          localStorage.setItem('token', token);
+          
+          // Set success alert
+          setAlertInfo({
+            show: true,
+            type: 'success',
+            message: 'Successfully logged in'
+          });
+  
+          // Navigate based on response structure
+          navigate(result.redirectTo || '/Bmi');
+        } else {
+          throw new Error('No token received');
+        }
+      } else {
+        throw new Error(result?.error || 'Login failed');
+      }
     } catch (error) {
+      // Enhanced error handling
+      const errorMessage = error.response?.data?.error || 
+                          error.message || 
+                          'Unknown error occurred';
+      
+      console.error('Login error:', error);
+      
       setAlertInfo({
         show: true,
         type: 'error',
-        message: `Sign in failed: ${error.response?.data?.error || error.message}`
+        message: `Sign in failed: ${errorMessage}`
       });
+  
+      // Preserve form input on error
+      setEmail(event.target.elements.email?.value || '');
+      setPassword(event.target.elements.password?.value || '');
+      
+      // Navigate to login only if authentication failed
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
     }
   };
 
@@ -136,6 +153,7 @@ export default function SignInCard() {
 
     return isValid;
   };
+
 
   return (
     <>
