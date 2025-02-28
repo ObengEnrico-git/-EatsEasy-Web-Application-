@@ -177,7 +177,7 @@ const BmiCalculator = () => {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [currentStep]);
 
-  const calculateBMI = () => {
+  const calculateBMI = async () => {
     let heightInCm;
     if (heightUnit === "cm") {
       heightInCm = parseFloat(height);
@@ -189,9 +189,7 @@ const BmiCalculator = () => {
         ? parseFloat(weight)
         : convertPoundsToKg(parseFloat(weight));
     const heightInMeters = heightInCm / 100;
-    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(
-      2
-    );
+    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
 
     setBmi(bmiValue);
 
@@ -216,7 +214,59 @@ const BmiCalculator = () => {
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
     setShowGoalPopup(true);
-   
+
+    // Save BMI data to the database
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/bmi/saveBmi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          gender,
+          age,
+          weight,
+          weight_unit: weightUnit,
+          height,
+          height_unit: heightUnit,
+          activity_level: optionPicked,
+          diet_preferences: diet,
+          intolerances: selectedAllergens,
+          bmi: parseFloat(bmiValue),
+          bmi_status: bmiStatus
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save BMI data');
+      }
+
+      console.log('Sending BMI data:', {
+        gender,
+        age,
+        weight,
+        weight_unit: weightUnit,
+        height,
+        height_unit: heightUnit,
+        activity_level: optionPicked,
+        diet_preferences: diet,
+        intolerances: selectedAllergens,
+        bmi: parseFloat(bmiValue),
+        bmi_status: bmiStatus
+      });
+
+      const data = await response.json();
+      console.log('BMI data saved:', data);
+    } catch (error) {
+      console.error('Error saving BMI data:', error);
+    }
   };
 
   const calculateCalorieCount = (goal) => {
@@ -239,7 +289,7 @@ const BmiCalculator = () => {
     }
 
     let activityMultiplier = 1.2;
-    switch (optionPicked.value) {
+    switch (optionPicked) {
       case "Sedentary: little or no exercise":
         activityMultiplier = 1.2;
         break;
@@ -440,7 +490,7 @@ const BmiCalculator = () => {
                 <FloatingLabelInput
                   id="activity-level"
                   label="Activity Level"
-                  type="select" // This makes it render a select dropdown
+                  type="select"
                   value={optionPicked}
                   onChange={(e) => setOptionPicked(e.target.value)}
                   options={[

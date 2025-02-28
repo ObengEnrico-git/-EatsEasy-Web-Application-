@@ -31,6 +31,7 @@ const UserProfile = () => {
   const [openBackdrop, setOpenBackdrop] = useState(false)
   const [showLogoutAlert, setShowLogoutAlert] = useState(false)
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [bmiHistory, setBmiHistory] = useState([]);
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -164,9 +165,31 @@ const UserProfile = () => {
         setFavoriteRecipes([]);
         setBmiData(null);
         setSavedRecipes(formattedSavedRecipes);
+
+        // Fetch BMI history
+        const bmiHistoryRes = await fetch('http://localhost:8000/api/bmi/history', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!bmiHistoryRes.ok) {
+          throw new Error(`HTTP error! status: ${bmiHistoryRes.status}`);
+        }
+
+        const bmiHistoryData = await bmiHistoryRes.json();
+        console.log('BMI History:', bmiHistoryData);
+
+        // The first record in history is the latest
+        const latestBmi = bmiHistoryData[0] || null;
+        setBmiHistory(bmiHistoryData);
+        setBmiData(latestBmi);
       } catch (error) {
         console.error('Error fetching data:', error);
         setSavedRecipes([]);
+        setBmiHistory([]);
+        setBmiData(null);
       } finally {
         setIsLoading(false);
       }
@@ -273,7 +296,10 @@ const UserProfile = () => {
           </Box>
         ) : (
           <>
-            <UserBmi bmiData={bmiData} />
+            <UserBmi 
+              bmiData={bmiData} 
+              bmiHistory={bmiHistory}
+            />  
             
             {/* Saved Weekly Meal Plans using FavoriteMealPlans component */}
             <FavouriteMealPlans 
