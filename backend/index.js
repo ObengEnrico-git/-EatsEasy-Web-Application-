@@ -7,7 +7,7 @@ const auth = require("./auth");
 const rateLimit = require("express-rate-limit");
 const { query, validationResult } = require("express-validator");
 const recipesRouter = require('./recipes');
-
+const bmiRouter = require('./bmi');
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
 
@@ -461,6 +461,8 @@ app.get("/fetchModifiedPage", async (req, res) => {
 
 // Mount routers with proper base paths
 app.use('/api/recipes', recipesRouter);
+
+app.use('/api/bmi', bmiRouter);
 
 // Export app for testing
 module.exports = app;
