@@ -3,7 +3,7 @@
 /* Page background and centering */
 .bmi-calculator-page {
   /*background:linear-gradient(135deg,#f0fff4,#c6f6d5)*/
-  background-color: #d9edda;
+  background-color: #f5fff9 ;
   display: flex;
   justify-content: center;
   align-items: flex-start;

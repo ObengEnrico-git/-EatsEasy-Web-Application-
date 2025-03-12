@@ -272,7 +272,7 @@ const MealPlan = () => {
             </div>
           </div>
         )}
-        <h1>Recommended Meals</h1>
+        <h1 >Recommended Meals</h1>
 
         <div className="flex justify-between items-center mb-4">
           <button
