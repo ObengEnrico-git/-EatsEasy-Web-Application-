@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import NavBar from "./NavBar";
+import NavBar from "../landingComponents/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
@@ -20,12 +20,13 @@ import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput"
 import { styled } from "@mui/material/styles";
 import WeightInput from "./components/weightInput";
 import HeightInput from "./components/heightInput";
-import { useTheme } from '@mui/material/styles';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Chip from '@mui/material/Chip';
+import { useTheme } from "@mui/material/styles";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Chip from "@mui/material/Chip";
+import { WeightGoal } from "./WeightGoal.js";
 
 const BorderLinearProgress = styled(LinearProgress)(() => ({
   height: 8,
@@ -164,7 +165,7 @@ const BmiCalculator = () => {
     window.history.pushState({ step: 2 }, "");
   };
 
-   // Listen to popstate events (browser back button)
+  // Listen to popstate events (browser back button)
   useEffect(() => {
     const handlePopState = (event) => {
       // Check the history state or simply go back one step
@@ -189,7 +190,9 @@ const BmiCalculator = () => {
         ? parseFloat(weight)
         : convertPoundsToKg(parseFloat(weight));
     const heightInMeters = heightInCm / 100;
-    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
+    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(
+      2
+    );
 
     setBmi(bmiValue);
 
@@ -214,20 +217,21 @@ const BmiCalculator = () => {
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
     setShowGoalPopup(true);
+    setCurrentStep(3);
 
     // Save BMI data to the database
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        console.error('No token found');
+        console.error("No token found");
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/bmi/saveBmi', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/api/bmi/saveBmi", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           gender,
@@ -240,15 +244,15 @@ const BmiCalculator = () => {
           diet_preferences: diet,
           intolerances: selectedAllergens,
           bmi: parseFloat(bmiValue),
-          bmi_status: bmiStatus
-        })
+          bmi_status: bmiStatus,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save BMI data');
+        throw new Error("Failed to save BMI data");
       }
 
-      console.log('Sending BMI data:', {
+      console.log("Sending BMI data:", {
         gender,
         age,
         weight,
@@ -259,13 +263,13 @@ const BmiCalculator = () => {
         diet_preferences: diet,
         intolerances: selectedAllergens,
         bmi: parseFloat(bmiValue),
-        bmi_status: bmiStatus
+        bmi_status: bmiStatus,
       });
 
       const data = await response.json();
-      console.log('BMI data saved:', data);
+      console.log("BMI data saved:", data);
     } catch (error) {
-      console.error('Error saving BMI data:', error);
+      console.error("Error saving BMI data:", error);
     }
   };
 
@@ -348,8 +352,6 @@ const BmiCalculator = () => {
     }
   };
 
- 
-
   // Handle paste event
   const pasteChecks = (e) => {
     e.preventDefault();
@@ -379,15 +381,37 @@ const BmiCalculator = () => {
     setCurrentStep(1);
   };
 
+    // New state for sign-up (Step 3)
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+
+ 
+
   return (
-    <div className="bmi-calculator-page">
-      <NavBar />
+    <div>
+     {/* <NavBar /> */}
       <div
         className="bmiCalculator-page-container"
         style={{ display: "flex", flexDirection: "row" }}
       >
         <div className="container">
-          <h1>EatsEasy</h1>
+          <div style={{ textAlign: "center" }}>
+            <h1
+              style={{
+                display: "inline-block",
+                backgroundColor: "#2f855a",
+                fontSize: "4rem",
+                fontWeight: "bold",
+                color: "white",
+                marginBottom: "20px",
+                padding: "20px", // optional: adjust padding to create space around the text
+              }}
+            >
+              EatsEasy
+            </h1>
+          </div>
 
           <Typography sx={{ color: "gray", mb: 2, textAlign: "center" }}>
             We'll personalise your meal plan based on you and your preferences
@@ -396,14 +420,14 @@ const BmiCalculator = () => {
           <Box sx={{ width: "100%", maxWidth: "700px", mb: 5 }}>
             <Typography
               variant="body1"
-              sx={{ textAlign: "left", fontWeight: "bold" }}
+              sx={{ textAlign: "left", fontWeight: "bold", color: "Black" }}
               id="progress-text"
             >
-              Step {currentStep} of 2
+              Step {currentStep} of 4
             </Typography>
             <BorderLinearProgress
               variant="determinate"
-              value={currentStep === 1 ? 50 : 100}
+              value={(currentStep / 4) * 100}
               aria-labelledby="progress-text"
             />
           </Box>
@@ -448,7 +472,7 @@ const BmiCalculator = () => {
               <div className="bmiCalculator-input-group">
                 <label data-testid="age-input">
                   <FloatingLabelInput
-                    id= "enterAge"
+                    id="enterAge"
                     label="Enter your age"
                     type="number"
                     value={age}
@@ -457,7 +481,6 @@ const BmiCalculator = () => {
                     required
                     min="0"
                     error={error}
-                    
                   />
                 </label>
               </div>
@@ -465,10 +488,8 @@ const BmiCalculator = () => {
               {/* Weight Input */}
               <div className="bmiCalculator-input-group">
                 <WeightInput
-                  disabled={isCalculated}   
+                  disabled={isCalculated}
                   label="Enter Weight"
-                  
-
                   onWeightChange={(val) => setWeight(val)}
                   unit={weightUnit}
                   onUnitChange={(newUnit) => setWeightUnit(newUnit)}
@@ -520,7 +541,6 @@ const BmiCalculator = () => {
                       label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
-                  
                   disabled={isCalculated}
                 />
               </div>
@@ -530,14 +550,14 @@ const BmiCalculator = () => {
                 variant="contained"
                 fullWidth
                 sx={{
-                  backgroundColor: "#38a169",
+                  backgroundColor: "#13290C",
                   color: "#fff",
                   fontSize: "1.2rem",
                   fontWeight: "bold",
-                  borderRadius: "30px",
+                  borderRadius: "15px",
                   padding: "12px 0",
                   "&:hover": {
-                    backgroundColor: "FFFFFF",
+                    backgroundColor: "FFFFFF", 
                   },
                 }}
                 aria-label="Proceed to the next step"
@@ -559,23 +579,48 @@ const BmiCalculator = () => {
               {
                 <div>
                   <div>
-                    <h2 className="text-black md:mb-3 mb-1 font-bold text-2xl">
+                    <h2 className=" text-center text-black md:mb-3 mb-1 font-bold text-2xl">
                       Select Diet Preferences
                     </h2>
 
                     <div className="bmiCalculator-input-group">
-                      <div data-testid="dropdown-diet" className="md:mb-11 mb-10">
-                        <FormControl sx={{ width: '100%' }}>
-                          <InputLabel id="diet-preferences-label">Diet Preferences</InputLabel>
+                      <div
+                        data-testid="dropdown-diet"
+                        className="md:mb-11 mb-10"
+                      >
+                        <FormControl sx={{ width: "100%" }}>
+                          <InputLabel id="diet-preferences-label">
+                            Diet Preferences
+                          </InputLabel>
                           <Select
                             labelId="diet-preferences-label"
                             id="diet-preferences"
                             multiple
                             value={diet}
                             onChange={(e) => setDietOptions(e.target.value)}
-                            input={<OutlinedInput label="Diet Preferences" />}
+                            input={
+                              <OutlinedInput
+                                label="Diet Preferences"
+                                sx={{
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#A9A9A9", // default border color
+                                    borderWidth: "2px", // border thickness set to 2px
+                                  },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#1976d2", // border color on hover
+                                    borderWidth: "3px",
+                                  },
+                                }}
+                              />
+                            }
                             renderValue={(selected) => (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 0.5,
+                                }}
+                              >
                                 {selected.map((value) => (
                                   <Chip key={value} label={value} />
                                 ))}
@@ -610,11 +655,11 @@ const BmiCalculator = () => {
                     variant="contained"
                     fullWidth
                     sx={{
-                      backgroundColor: "#38a169",
+                      backgroundColor: "#13290C",
                       color: "#fff",
                       fontSize: "1.2rem",
                       fontWeight: "bold",
-                      borderRadius: "30px",
+                      borderRadius: "15px",
                       padding: "12px 0",
                       mt: 5,
                       "&:hover": {
@@ -626,7 +671,7 @@ const BmiCalculator = () => {
                     Calculate
                   </Button>
 
-                  <Button
+                  {/* <Button
                     type="submit"
                     onClick={goBackStep}
                     variant="contained"
@@ -646,90 +691,155 @@ const BmiCalculator = () => {
                     aria-label="Proceed to the next step"
                   >
                     Back
-                  </Button>
+                  </Button> */}
 
                   {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
                     Reset{" "}
                   </button> */}
                 </div>
-                }
+              }
             </form>
           )}
-          
+          {currentStep === 3 && (
+            <form
+              data-testid="form3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setCurrentStep(4);
 
-          {showGoalPopup && (
-            <div
-              className="bmiCalculator-popup-overlay"
-              onClick={() => setShowGoalPopup(false)} // forces user to click by setting it true
+                //calculateCalorieCount("weightGoal");
+              }}
             >
-              <div
-                className="bmiCalculator-popup-content"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-white">Select Your Weight Goal</h2>
-
-                <button
-                  onClick={() => setIsInfoVisible(!isInfoVisible)}
-                  className="toggle-button"
-                >
-                  {isInfoVisible
-                    ? "Hide BMI and Status ▲"
-                    : "View BMI and Status ▼"}
-                </button>
-
-                {isInfoVisible && (
-                  <div className="bmiCalculator-bmi-details">
-                    <p>
-                      <strong>BMI:</strong> {bmi}
-                    </p>
-                    <p>
-                      <strong>Status:</strong> {status}
-                    </p>
-                  </div>
-                )}
-
-                <p className="bmiCalculator-bmi-recommendation">
-                  Based on your BMI, we recommend you to{" "}
-                  <strong>{weightGoal}</strong> weight.
-                </p>
-                <div className="bmiCalculator-goal-buttons">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("lose");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("lose");
-                    }}
-                    className={weightGoal === "lose" ? "highlighted" : ""}
-                  >
-                    Lose Weight
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("maintain");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("maintain");
-                    }}
-                    className={weightGoal === "maintain" ? "highlighted" : ""}
-                  >
-                    Maintain Weight
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("gain");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("gain"); // passed value
-                    }}
-                    className={weightGoal === "gain" ? "highlighted" : ""}
-                  >
-                    Gain Weight
-                  </button>
+              <div>
+                <div>
+                  <h2 className="text-black md:mb-3 mb-1 font-bold text-2xl">
+                    Select Your Weight Goal
+                  </h2>
+                  <WeightGoal
+                    setIsInfoVisible={setIsInfoVisible}
+                    bmi = {bmi}
+                    status = {status}
+                    isInfoVisible={ isInfoVisible}
+                    weightGoal = {weightGoal}
+                    setWeightGoal={setWeightGoal}
+                   
+                  />
                 </div>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: "#13290C",
+                    color: "#fff",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                    borderRadius: "30px",
+                    padding: "12px 0",
+                    mt: 5,
+                    "&:hover": {
+                      backgroundColor: "FFFFFF",
+                    },
+                  }}
+                  aria-label="Proceed to the next step"
+                >
+                  Calculate
+                </Button>
+
+                {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
+                    Reset{" "}
+                  </button> */}
               </div>
-            </div>
+            </form>
           )}
+          {currentStep === 4 && (
+            <form
+              data-testid="form3"
+              onSubmit={(e) => {
+                e.preventDefault();          
+                calculateCalorieCount("weightGoal");
+              }}
+            >
+              <div>
+                <div>
+                  <h2 className=" text-black md:mb-3 mb-1 font-bold text-2xl">
+                    Sign up
+                  </h2>
+
+                  <div  className="bmiCalculator-input-group" >
+                  <FloatingLabelInput
+                    id="Full name"
+                    label="Full Name"
+                    type="String"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value) }                    
+                    required                    
+                   
+                  />
+                  </div>
+                  
+                </div>
+
+                <div  className="bmiCalculator-input-group" >
+                  <FloatingLabelInput
+                    id="Email"
+                    label="Email"
+                    type="String"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value) }                    
+                    required                    
+                   
+                  />
+                  </div>
+
+                  <div  className="bmiCalculator-input-group" >
+                  <FloatingLabelInput
+                    id="Password"
+                    label="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value) }                    
+                    required                    
+                   
+                  />
+                  </div>
+                  
+               
+                
+
+
+                
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: "#13290C",
+                    color: "#fff",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                    borderRadius: "30px",
+                    padding: "12px 0",
+                    mt: 5,
+                    "&:hover": {
+                      backgroundColor: "FFFFFF",
+                    },
+                  }}
+                  aria-label="Proceed to the next step"
+                >
+                  Calculate
+                </Button>
+
+                {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
+                    Reset{" "}
+                  </button> */}
+              </div>
+            </form>
+          )}
+
+         
         </div>
       </div>
     </div>

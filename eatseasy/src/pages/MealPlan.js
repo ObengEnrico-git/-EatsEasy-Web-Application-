@@ -1,18 +1,17 @@
-import React, { useState, useEffect, lazy, Suspense} from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import NavBar from "./NavBar";
+import NavBar from "../landingComponents/Navbar";
 import "../styles/MealPlan.css";
 import axios from "axios";
 import { MdAccessTime } from "react-icons/md";
 import { IoMdPeople } from "react-icons/io";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
-import { Tooltip } from '@mui/material';
-import { Snackbar, Button } from '@mui/material';
-import MuiAlert from '@mui/material/Alert';
+import { Tooltip } from "@mui/material";
+import { Snackbar, Button } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 
 const Loader = lazy(() => import("./Loader"));
-
 
 const MealPlan = () => {
   const location = useLocation();
@@ -22,16 +21,15 @@ const MealPlan = () => {
     targetCalories,
     diet,
     allergen,
-
   } = location.state || {};
-
 
   const [mealData, setMealData] = useState(initialMealData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState({});
   const [viewIsLoading, setViewIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
 
   const [visibleDay, setVisibleDay] = useState(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
@@ -53,6 +51,12 @@ const MealPlan = () => {
   };
 
   useEffect(() => {
+  if (mealData) {
+    localStorage.setItem("mealPlan", JSON.stringify(mealData));
+  }
+}, [mealData]);
+
+  useEffect(() => {
     if (showInfoPanel) {
       document.body.style.overflow = "hidden";
     }
@@ -60,7 +64,7 @@ const MealPlan = () => {
       document.body.style.overflow = "auto";
     };
   }, [showInfoPanel]);
-  
+
   const fetchNewMealPlan = async () => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -77,7 +81,6 @@ const MealPlan = () => {
           targetCalories: Math.round(targetCalories),
           targetDiet: diet,
           targetAllergen: allergen.value,
-
         },
       });
 
@@ -95,7 +98,6 @@ const MealPlan = () => {
     }
   };
 
-
   const fetchDayPlan = async (day) => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -103,7 +105,7 @@ const MealPlan = () => {
         navigate("/");
         return;
       }
-      setLoadingDays(prev => ({ ...prev, [day]: true }));
+      setLoadingDays((prev) => ({ ...prev, [day]: true }));
 
       const response = await axios.get("http://localhost:8000/daymealplan", {
         params: {
@@ -129,7 +131,7 @@ const MealPlan = () => {
         alert("Failed to fetch day plan. Please try again later.");
       }
     } finally {
-      setLoadingDays(prev => ({ ...prev, [day]: false }));
+      setLoadingDays((prev) => ({ ...prev, [day]: false }));
     }
   };
 
@@ -148,7 +150,6 @@ const MealPlan = () => {
     }));
   };
 
-
   const handleViewRecipe = async (url) => {
     setViewIsLoading(true);
     try {
@@ -163,7 +164,8 @@ const MealPlan = () => {
       newWindow.document.write(response.data);
       newWindow.document.close();
 
-      newWindow.onhashchange = () => { // replaces anything after the # on url dynamically removes anything after to "" (empty) 
+      newWindow.onhashchange = () => {
+        // replaces anything after the # on url dynamically removes anything after to "" (empty)
         newWindow.history.replaceState(
           null,
           "",
@@ -178,7 +180,7 @@ const MealPlan = () => {
   };
 
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setOpenSnackbar(false);
@@ -186,7 +188,7 @@ const MealPlan = () => {
 
   const handleFavoriteAll = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -203,22 +205,22 @@ const MealPlan = () => {
             servings: meal.servings,
             sourceUrl: meal.sourceUrl,
             day: day.toLowerCase(), // e.g., 'monday'
-            mealOrder: index // 0 for breakfast, 1 for lunch, 2 for dinner
+            mealOrder: index, // 0 for breakfast, 1 for lunch, 2 for dinner
           });
         });
       });
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.post(
-        'http://localhost:8000/api/recipes/save-all',
-        { 
+        "http://localhost:8000/api/recipes/save-all",
+        {
           recipes: allRecipes,
-          weekData: mealData.week
+          weekData: mealData.week,
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -226,11 +228,11 @@ const MealPlan = () => {
       setOpenSnackbar(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error('Error saving recipes:', error);
+      console.error("Error saving recipes:", error);
       if (error.response?.status === 401) {
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
         setIsAuthenticated(false);
-        navigate('/login');
+        navigate("/login");
       }
     } finally {
       setIsSaving(false);
@@ -249,22 +251,22 @@ const MealPlan = () => {
               </h3>
               <p>
                 This meal plan is based on your current BMR and TDEE. It's
-                recommended to eat a balanced meal plan, with a variety of protein,
-                carbohydrates, and fats.
+                recommended to eat a balanced meal plan, with a variety of
+                protein, carbohydrates, and fats.
               </p>
               <br />
               <p>
                 You might see that the recipes serve "4" or "12". This means the
-                recipe serves up to that amount, and does not mean to have, for example,
-                4 meals of the same recipe. You can adjust the serving quantity after
-                clicking "view recipe".
+                recipe serves up to that amount, and does not mean to have, for
+                example, 4 meals of the same recipe. You can adjust the serving
+                quantity after clicking "view recipe".
               </p>
               <br />
               <p>
                 <b>
                   <u>
-                    Remember to consult your GP / healthcare provider for any drastic
-                    changes to your diet.
+                    Remember to consult your GP / healthcare provider for any
+                    drastic changes to your diet.
                   </u>
                 </b>
               </p>
@@ -272,9 +274,9 @@ const MealPlan = () => {
             </div>
           </div>
         )}
-        <h1 >Recommended Meals</h1>
 
         <div className="flex justify-between items-center mb-4">
+          {/*
           <button
             className="refresh-button"
             onClick={refreshMealPlan}
@@ -285,20 +287,24 @@ const MealPlan = () => {
             // }}  
           >
             {isLoading ? "Refreshing..." : "Refresh All Meals"}
-          </button>
+          </button> */}
 
           <button
-            className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+            className={`px-6 py-3 rounded-lg transition-all duration-300 font-sans text-base font-bold ${
               isSaving || !isAuthenticated
-                ? 'bg-gray-300 cursor-not-allowed'
+                ? "bg-gray-300 cursor-not-allowed"
                 : saveSuccess
-                ? 'bg-green-500 text-white'
-                : 'bg-[#1f9b48] hover:bg-[#194b34] text-white'
+                ? "bg-green-500 text-white"
+                : "bg-[#067A46] hover:bg-[#194b34] text-white"
             }`}
             onClick={handleFavoriteAll}
             disabled={isSaving || !isAuthenticated}
           >
-            {isSaving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Favourite All Meals'}
+            {isSaving
+              ? "Saving..."
+              : saveSuccess
+              ? "Saved!"
+              : "Favourite All Meals"}
           </button>
         </div>
         {!mealData || !mealData.week ? (
@@ -310,7 +316,7 @@ const MealPlan = () => {
         ) : (
           Object.keys(mealData.week).map((day) => (
             <div className="day-container" key={day}>
-              <h2>
+              <h2 style={{ fontWeight: "bold", color: "Black" }}>
                 {day.charAt(0).toUpperCase() + day.slice(1)}
                 <button
                   className="info-button"
@@ -324,10 +330,19 @@ const MealPlan = () => {
                   aria-label={`Refresh ${day} meal plan`}
                   disabled={loadingDays[day]}
                 >
-                  <Tooltip title={`Refresh ${day.charAt(0).toUpperCase() + day.slice(1) }'s meal plan`} placement="top">
-                    <div>  {/* Wrapper div needed for Tooltip to work with disabled button */}
-                      <FiRefreshCw 
-                        className={`refresh-icon ${loadingDays[day] ? 'spinning' : ''}`}
+                  <Tooltip
+                    title={`Refresh ${
+                      day.charAt(0).toUpperCase() + day.slice(1)
+                    }'s meal plan`}
+                    placement="top"
+                  >
+                    <div>
+                      {" "}
+                      {/* Wrapper div needed for Tooltip to work with disabled button */}
+                      <FiRefreshCw
+                        className={`refresh-icon ${
+                          loadingDays[day] ? "spinning" : ""
+                        }`}
                       />
                     </div>
                   </Tooltip>
@@ -336,27 +351,40 @@ const MealPlan = () => {
               <div className="meal-list">
                 {mealData.week[day].meals.map((meal, index) => (
                   <div className="meal-card" key={meal.id}>
-                    <div
-                      className="heart-icon"
-                      onMouseEnter={() => setHoveredHeart(meal.id)} // Track hover
-                      onMouseLeave={() => setHoveredHeart(null)} // Reset on unhover
-                      onClick={() => toggleFavourite(meal.id)}
-                    >
-                      {favouritedMeals[meal.id] || hoveredHeart === meal.id ? <FaHeart color="red" /> : <FaRegHeart />}
-                    </div>
+                    <Tooltip title="Like">
+                      <div
+                        className="heart-icon"
+                        onMouseEnter={() => setHoveredHeart(meal.id)} // Track hover
+                        onMouseLeave={() => setHoveredHeart(null)} // Reset on unhover
+                        onClick={() => toggleFavourite(meal.id)}
+                      >
+                        {favouritedMeals[meal.id] ||
+                        hoveredHeart === meal.id ? (
+                          <FaHeart color="red" aria-label="Liked"/>
+                        ) : (
+                          <FaRegHeart aria-label="Not Liked"/>
+                        )}
+                      </div>
+                    </Tooltip>
 
-                    <div style={{
-                      backgroundColor: "#38a169",
-                      color: "white",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      display: "inline-block",
-                      textAlign: "left",
-                      fontWeight: "bold",
-                      marginBottom: "8px",
-                      fontSize: "0.9rem"
-                    }}>
-                      {index === 0 ? "Breakfast" : index === 1 ? "Lunch" : "Dinner"}
+                    <div
+                      style={{
+                        backgroundColor: "#38a169",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        display: "inline-block",
+                        textAlign: "left",
+                        fontWeight: "bold",
+                        marginBottom: "8px",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {index === 0
+                        ? "Breakfast"
+                        : index === 1
+                        ? "Lunch"
+                        : "Dinner"}
                     </div>
                     <h3>{meal.title}</h3>
                     <img
@@ -397,12 +425,17 @@ const MealPlan = () => {
               </div>
               {visibleDay === day && (
                 <div className="nutrients-info">
-                  <h3><b>Nutritional Information</b></h3>
+                  <h3>
+                    <b>Nutritional Information</b>
+                  </h3>
                   <i>
                     <p>Calories: {mealData.week[day].nutrients.calories}</p>
                     <p>Protein: {mealData.week[day].nutrients.protein}g</p>
                     <p>Fat: {mealData.week[day].nutrients.fat}g</p>
-                    <p>Carbohydrates: {mealData.week[day].nutrients.carbohydrates}g</p>
+                    <p>
+                      Carbohydrates:{" "}
+                      {mealData.week[day].nutrients.carbohydrates}g
+                    </p>
                   </i>
                 </div>
               )}
@@ -414,7 +447,7 @@ const MealPlan = () => {
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <MuiAlert
           elevation={6}
@@ -425,7 +458,7 @@ const MealPlan = () => {
               color="inherit"
               size="small"
               onClick={() => {
-                navigate('/userprofile');
+                navigate("/userprofile");
                 handleCloseSnackbar();
               }}
             >
@@ -435,7 +468,8 @@ const MealPlan = () => {
         >
           You can view your favourite meal plan by clicking "View"
           <br />
-          Saved on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString().slice(0, 5)}
+          Saved on {new Date().toLocaleDateString()} at{" "}
+          {new Date().toLocaleTimeString().slice(0, 5)}
         </MuiAlert>
       </Snackbar>
     </div>

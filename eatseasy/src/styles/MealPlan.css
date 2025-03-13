@@ -30,13 +30,13 @@
 .info-button {
     background: none;
     border: none;
-    color: #75b193;
+    color: #1e5c3d;
     font-size: 1.2rem;
     cursor: pointer;
 }
 
 .info-button:hover {
-    color: #1e5c3d;
+    color: #75b193;
     text-decoration: underline;
 }
 
