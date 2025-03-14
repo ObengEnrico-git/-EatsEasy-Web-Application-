@@ -15,6 +15,7 @@ const Navbar = ({ hideAuthButtons = false, hideProfileButton = false }) => {
   const isAuthenticated = localStorage.getItem("token") !== null;
 
   
+   const hideauth =  ["/Bmi"].includes(location.pathname); // shows and hide profile button depending on site
   
    const hideProfile =  ["/userProfile"].includes(location.pathname); // shows and hide profile button depending on site
 
@@ -51,7 +52,7 @@ const Navbar = ({ hideAuthButtons = false, hideProfileButton = false }) => {
           )
         ) : (
           <>
-            {!hideAuthButtons && (
+            {!hideauth && (
               <>
                 <li>
                   <button
