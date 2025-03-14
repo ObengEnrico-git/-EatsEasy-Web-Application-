@@ -391,7 +391,7 @@ const BmiCalculator = () => {
 
   return (
     <div>
-     {/* <NavBar /> */}
+     <NavBar />
       <div
         className="bmiCalculator-page-container"
         style={{ display: "flex", flexDirection: "row" }}
