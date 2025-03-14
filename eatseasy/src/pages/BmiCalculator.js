@@ -295,10 +295,11 @@ const BmiCalculator = () => {
       console.error('Error saving BMI data:', error);
     }
   };
+
     Cookies.set('bmiData', JSON.stringify({ 
-      status: bmiStatus, 
-      bmi: bmiValue, 
-      weightGoal: recommendedGoal,
+      status, 
+      bmi, 
+      weightGoal,
       weight,        
       weightUnit,
       gender,
@@ -307,10 +308,9 @@ const BmiCalculator = () => {
       age,
       optionPicked,
       diet,
-      selectedAllergens
-    }), { expires: 7 });
+      selectedAllergens,
+    }), { expires: 1 });
 
-    };
 
   const calculateCalorieCount = (goal) => {
     if (!isCalculated) return null;
@@ -778,5 +778,4 @@ const BmiCalculator = () => {
     </div>
   );
 };
-
 export default BmiCalculator;
