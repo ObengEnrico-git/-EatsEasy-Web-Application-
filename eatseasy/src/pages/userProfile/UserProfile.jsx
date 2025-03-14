@@ -17,7 +17,6 @@ import FavouriteRecipes from "./FavouriteRecipes";
 import UserBmi from "./UserBmi";
 import CheckIcon from "@mui/icons-material/Check";
 import LogoutIcon from "@mui/icons-material/Logout";
-import MyChatBot from "./chatBot"
 
 const UserProfile = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -249,7 +248,6 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-[#f5f7f5]">
       <Navbar />
-      <MyChatBot options={{ theme: { embedded: false } }} />
       <div className="bg-[#1b4332] text-white">
         <Container maxWidth="lg">
           <Box className="py-16 px-4">
