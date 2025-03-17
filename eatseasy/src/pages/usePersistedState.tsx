@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from "react";
 
 
 
+
+
+
+
 /**
  * A custom hook that syncs state with localStorage under the given key.
  * @param key The localStorage key to read/write.

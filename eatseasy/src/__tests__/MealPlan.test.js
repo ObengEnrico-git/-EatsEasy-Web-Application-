@@ -63,7 +63,7 @@ describe('MealPlan Component', () => {
       </MemoryRouter>
     );
 
-    //expect(screen.getByText('Recommended Meals')).toBeInTheDocument();
+    
     expect(screen.getByText('Monday')).toBeInTheDocument();
     expect(screen.getByText('Test Meal 1')).toBeInTheDocument();
     expect(screen.getByText('30 minutes')).toBeInTheDocument();
