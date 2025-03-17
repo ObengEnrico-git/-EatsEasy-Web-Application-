@@ -28,6 +28,7 @@ import Select from "@mui/material/Select";
 import Chip from "@mui/material/Chip";
 import { WeightGoal } from "./WeightGoal.js";
 
+
 const BorderLinearProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 5,

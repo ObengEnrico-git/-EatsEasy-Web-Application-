@@ -13,7 +13,7 @@ function getItem<T>(key: string): T | null {
   } catch (error) {
     console.warn("usePersistedState: Error parsing localStorage item", error);
     return null;
-  }
+  } 
 }
 
 

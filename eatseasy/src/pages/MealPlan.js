@@ -50,7 +50,7 @@ const MealPlan = () => {
     document.body.style.overflow = "auto";
   };
 
-  useEffect(() => {
+  useEffect(() => { // need to  save in the database 
   if (mealData) {
     localStorage.setItem("mealPlan", JSON.stringify(mealData));
   }

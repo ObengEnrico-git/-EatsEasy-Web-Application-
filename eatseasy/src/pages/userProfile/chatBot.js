@@ -2,20 +2,42 @@ import React from "react";
 import ChatBot from "react-chatbotify";
 
 const MyChatBot = () => {
-  const nutritionContext =
-    "You are a nutritionist. All questions and answers should be related only to food.";
-  const { GoogleGenerativeAI } = require("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(
-    "AIzaSyCE2XFM6jP6Z4Fz5X2FlD7do0hTzSLSL5g"
-  );
+
+
+ 
+   
   
   async function run(userPrompt) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });    
-    const fullPrompt = nutritionContext + "\n" + userPrompt;
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
-    return text;
+
+    const token = localStorage.getItem("token");
+     
+  
+    try{
+
+      
+
+      const response = await fetch("http://localhost:8000/api/bmi/generatedResponse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt: userPrompt
+          
+        }),
+      });
+      if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+    } catch (error) {
+      console.error("Error generating response:", error);
+      return "There was an error generating the response. Please try again later.";
+    }
+   
   }
 
   const flow = {
@@ -31,7 +53,7 @@ const MyChatBot = () => {
     },
   };
 
-  return <ChatBot flow={flow} />;
+  return <ChatBot flow={flow}   />;
 };
 
 export default MyChatBot;
