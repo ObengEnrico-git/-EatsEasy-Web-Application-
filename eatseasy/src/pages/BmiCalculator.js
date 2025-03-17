@@ -93,7 +93,7 @@ const BmiCalculator = () => {
   const [optionPicked, setOptionPicked] = usePersistedState("optionPicked", "");
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isCalculated, setIsCalculated] = useState(false);
-  const [showGoalPopup, setShowGoalPopup] = useState(false);
+  
   const [weightGoal, setWeightGoal] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   // Add at the top with your other state variables
@@ -217,7 +217,7 @@ const BmiCalculator = () => {
     setStatus(bmiStatus);
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
-    setShowGoalPopup(true);
+    
     setCurrentStep(3);
 
     // Save BMI data to the database
@@ -378,9 +378,7 @@ const BmiCalculator = () => {
     }
   };
 
-  const goBackStep = () => {
-    setCurrentStep(1);
-  };
+
 
     // New state for sign-up (Step 3)
   const [fullName, setFullName] = useState("");

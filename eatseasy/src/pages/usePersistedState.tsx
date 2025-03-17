@@ -1,36 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-/**
- * Reads from localStorage by key and parses the JSON string (if any).
- */
-function getItem<T>(key: string): T | null {
-  try {
-    const storedValue = localStorage.getItem(key);
-    if (storedValue === null) {
-      return null;
-    }
-    return JSON.parse(storedValue) as T;
-  } catch (error) {
-    console.warn("usePersistedState: Error parsing localStorage item", error);
-    return null;
-  } 
-}
 
-
-function setItem<T>(key: string, value: T) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.warn("usePersistedState: Error setting localStorage item", error);
-  }
-}
 
 /**
  * A custom hook that syncs state with localStorage under the given key.
  * @param key The localStorage key to read/write.
  * @param initialValue 
  */
-export function usePersistedState<T>(key, initialValue, delay = 1000) {
+export function usePersistedState(key, initialValue, delay = 1000) {
   // Get the initial state from local storage if it exists.
   const [state, setState] = useState(() => {
     const storedValue = localStorage.getItem(key);

@@ -276,7 +276,7 @@ const MealPlan = () => {
         )}
 
         <div className="flex justify-between items-center mb-4">
-          {/*
+          
           <button
             className="refresh-button"
             onClick={refreshMealPlan}
@@ -287,7 +287,7 @@ const MealPlan = () => {
             // }}  
           >
             {isLoading ? "Refreshing..." : "Refresh All Meals"}
-          </button> */}
+          </button> 
 
           <button
             className={`px-6 py-3 rounded-lg transition-all duration-300 font-sans text-base font-bold ${
