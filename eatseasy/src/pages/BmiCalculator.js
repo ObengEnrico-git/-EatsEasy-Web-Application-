@@ -720,7 +720,7 @@ const BmiCalculator = () => {
             >
               <div>
                 <div>
-                  <h2 className="text-black md:mb-3 mb-1 font-bold text-2xl">
+                  <h2 className="text-center text-black md:mb-3 mb-1 font-bold text-2xl">
                     Select Your Weight Goal
                   </h2>
                   <WeightGoal

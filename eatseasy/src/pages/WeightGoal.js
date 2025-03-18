@@ -26,7 +26,10 @@ export function WeightGoal({
 
   return (
     <div>
-      <div>
+      <div  style={{
+    display: "flex",
+    justifyContent: "center",
+  }}>
         <button
           type="button"
           onClick={() => setIsInfoVisible(!isInfoVisible)}
