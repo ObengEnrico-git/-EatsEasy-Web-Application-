@@ -5,6 +5,7 @@ import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
 import InterestSelector from "./components/FormCompontents/IntolerancesForm.js";
 import { usePersistedState } from "./usePersistedState.tsx";
+import Cookies from "js-cookie";
 import axios from "axios";
 import LinearProgress, {
   linearProgressClasses,
@@ -80,9 +81,7 @@ const BmiCalculator = () => {
   const [weight, setWeight] = usePersistedState("weight", "");
   const [weightUnit, setWeightUnit] = usePersistedState("weightUnit", "kg");
   const [gender, setGender] = usePersistedState("gender", "");
-
   const [height, setHeight] = usePersistedState("height", "");
-
   const [heightUnit, setHeightUnit] = usePersistedState("heightUnit", "cm");
   const [age, setAge] = usePersistedState("age", "");
   const [diet, setDietOptions] = usePersistedState("diet", []);
@@ -102,6 +101,34 @@ const BmiCalculator = () => {
     []
   );
 
+  useEffect(() => {
+    const storedBMI = Cookies.get('bmiData');
+    if (storedBMI) {
+      try {
+        const parsedData = JSON.parse(storedBMI);
+        console.log('Retrieved BMI Data:', parsedData);
+  
+        if (parsedData && typeof parsedData === 'object') {
+          setBmi(parsedData.bmi || '');
+          setStatus(parsedData.status || '');
+          setWeightGoal(parsedData.weightGoal || '');
+          setWeight(parsedData.weight || '');
+          setWeightUnit(parsedData.weightUnit || 'kg');
+          setGender(parsedData.gender || '');
+          setHeight(parsedData.height || '');
+          setHeightUnit(parsedData.heightUnit || 'cm');
+          setAge(parsedData.age || '');
+          setOptionPicked(parsedData.optionPicked || '');
+          setDietOptions(parsedData.diet || []);
+          setSelectedAllergens(parsedData.selectedAllergens || []);
+          setIsCalculated(true);
+        }
+      } catch (error) {
+        console.error('Error parsing BMI data from cookies:', error);
+      }
+    }
+  }, [setBmi, setStatus, setWeightGoal, setWeight, setWeightUnit, setGender, setHeight, setHeightUnit, setAge, setOptionPicked, setDietOptions, setSelectedAllergens, setIsCalculated]);
+  
   const theme = useTheme();
 
   // Add this useEffect to ensure diet is always an array
@@ -282,6 +309,22 @@ const BmiCalculator = () => {
     }
   };
 
+    Cookies.set('bmiData', JSON.stringify({ 
+      status, 
+      bmi, 
+      weightGoal,
+      weight,        
+      weightUnit,
+      gender,
+      height,    
+      heightUnit,
+      age,
+      optionPicked,
+      diet,
+      selectedAllergens,
+    }), { expires: 1 });
+
+
   const calculateCalorieCount = (goal) => {
     if (!isCalculated) return null;
 
@@ -446,7 +489,7 @@ const BmiCalculator = () => {
                 <FormControl
                   component="fieldset"
                   required
-                  disabled={isCalculated}
+                  //disabled={isCalculated}
                 >
                   <FormLabel
                     component="legend"
@@ -495,8 +538,9 @@ const BmiCalculator = () => {
               {/* Weight Input */}
               <div className="bmiCalculator-input-group">
                 <WeightInput
-                  disabled={isCalculated}
+                  //disabled={isCalculated}   
                   label="Enter Weight"
+                  value={weight}
                   onWeightChange={(val) => setWeight(val)}
                   unit={weightUnit}
                   onUnitChange={(newUnit) => setWeightUnit(newUnit)}
@@ -506,8 +550,9 @@ const BmiCalculator = () => {
               {/* Height Input */}
               <div className="bmiCalculator-input-group">
                 <HeightInput
-                  disabled={isCalculated}
+                  //disabled={isCalculated}
                   label="Enter Height "
+                  value={height}
                   onHeightChange={(val) => setHeight(val)}
                   unit={heightUnit}
                   UnitChange={(newUnit) => setHeightUnit(newUnit)}
@@ -548,7 +593,8 @@ const BmiCalculator = () => {
                       label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
-                  disabled={isCalculated}
+                  
+                  //disabled={isCalculated}
                 />
               </div>
 
@@ -853,5 +899,4 @@ const BmiCalculator = () => {
     </div>
   );
 };
-
 export default BmiCalculator;

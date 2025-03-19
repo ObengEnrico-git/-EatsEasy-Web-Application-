@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FloatingLabelInput from "./componentStyles/FloatingLabelInput";
 import {
   FormControl,
@@ -38,9 +38,10 @@ const MaterialUnitSelector = ({
   );
 };
 
-export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChange, label }) {
-  const [weight, setWeight] = useState("");
+export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChange, label, value }) {
+  const [weight, setWeight] = useState(value || "");
   const [error, setError] = useState(""); // Track error messages
+  const originalUnitRef = useRef(unit);
 
   // Use the onUnitChange callback to update parent's unit state directly
   const handleUnitChange = (e) => {
@@ -77,23 +78,32 @@ export function WeightInput({ disabled = false, onWeightChange, unit, onUnitChan
   };
 
   // Convert between kg and lb 
-  const convertWeight = (value, toUnit) => {
+  const convertWeight = (value, fromUnit, toUnit) => {
     const numericValue = parseFloat(value);
-    if (toUnit === "lb") {
+    if (isNaN(numericValue)) return "";
+    if (fromUnit === toUnit) return value;
+    if (fromUnit === "kg" && toUnit === "lb") {
       return (numericValue * 2.20462).toFixed(2);
-    } else {
+    } else if (fromUnit === "lb" && toUnit === "kg") {
       return (numericValue / 2.20462).toFixed(2);
     }
+    return value;
   };
 
+  // Only convert if the unit has changed from the original
   useEffect(() => {
-    setWeight((prevWeight) => {
-      if (prevWeight !== "") {
-        return convertWeight(prevWeight, unit);
-      }
-      return prevWeight;
-    });
-  }, [unit]);
+    if (originalUnitRef.current !== unit && weight !== "") {
+      const converted = convertWeight(weight, originalUnitRef.current, unit);
+      setWeight(converted);
+      originalUnitRef.current = unit; // Update the reference to the new unit
+    }
+  }, [unit, weight]);
+
+  useEffect(() => {
+    if (onWeightChange) {
+      onWeightChange(weight);
+    }
+  }, [weight, onWeightChange]);
 
   // Notify parent whenever weight changes
   useEffect(() => {

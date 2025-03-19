@@ -1,12 +1,43 @@
-import * as React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
 import Stack from '@mui/material/Stack';
 import AppTheme from './shared-theme/AppTheme';
 import ColorModeSelect from './shared-theme/ColorModeSelect';
 import SignInCard from './shared-theme/loginComponents/SignInCard';
 import Content from './shared-theme/loginComponents/Content';
+import { login } from '../../auth'
+
 
 export default function SignInSide(props) {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      console.log('Attempting login...');
+      const result = await login(email, password);
+      console.log('Login result:', result);
+
+      if (result && result.message === 'Login successful') {
+        console.log('Login successful');
+        console.log('Redirecting to /'); 
+        navigate('/BmiCalculator');
+        console.log('Redirect completed');
+      } else {
+        console.error('Login failed: No result returned');
+        setError('Login failed: No result returned');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Login error: ' + err.message);
+      navigate('/login');
+    }
+  };
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -58,7 +89,14 @@ export default function SignInSide(props) {
             }}
           >
             <Content />
-            <SignInCard />
+            <SignInCard
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              error={error}
+              onSubmit={handleLogin}
+            />
           </Stack>
         </Stack>
       </Stack>

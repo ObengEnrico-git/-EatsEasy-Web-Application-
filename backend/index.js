@@ -6,10 +6,13 @@ const db = require("./database");
 const auth = require("./auth");
 const rateLimit = require("express-rate-limit");
 const { query, validationResult } = require("express-validator");
+const cookieParser = require('cookie-parser');
 const recipesRouter = require('./recipes');
 const bmiRouter = require('./bmi');
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
+
 
 dotenv.config();
 
@@ -54,9 +57,17 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later.",
 });
 
-app.use(cors());
+app.set('trust proxy', 1);
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    exposedHeaders: ['Set-Cookie', 'Cookie']
+  }));
+
 app.use(limiter);
 app.use(express.json());
+app.use(cookieParser());
 
 // Add rate limiter for forgot password so you can't spam our backend
 // TODO (potentially) : add this rate lmiter for all our endpoints?
@@ -173,6 +184,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
+
 // Login user endpoint
 // Logs the user in (no way)
 app.post("/login", async (req, res) => {
@@ -182,11 +194,58 @@ app.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Email and password are required" });
   }
 
+    try {
+        const user = await auth.loginUser(email, password);
+        
+        console.log('Setting Token Cookie:', user.token);
+
+        // Send the user token cookie
+        res.cookie('token', user.token, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            maxAge: 60 * 60 * 1000,
+            path: '/',
+        });
+
+        res.status(200).json({ 
+          message: 'Login successful', 
+          user: { 
+              user_id: user.user_id, 
+              email: user.email,
+              token: user.token, // Include the token here
+          } 
+      });
+
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+});
+
+// Debug endpoint to check cookies
+app.get('/debug-cookies', (req, res) => {
+    console.log('Received cookies:', req.cookies);
+    res.json({
+      cookies: req.cookies,
+      headers: req.headers
+    });
+  });
+
+  // Logout endpoint
+app.post('/logout', (req, res) => {
   try {
-    const user = await auth.loginUser(email, password);
-    res.status(200).json({ message: "Login successful", user });
-  } catch (err) {
-    res.status(401).json({ error: err.message });
+    // Clear the token cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      path: '/',
+    });
+
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    res.status(500).json({ error: 'Logout failed' });
   }
 });
 
@@ -392,6 +451,94 @@ app.get("/user/profile", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// Fetch user data endpoint
+app.get('/api/user/data', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+
+    // Query the database for the user's saved data
+    const query = `
+      SELECT 
+        bmi_status,
+        gender,
+        age,
+        height,
+        height_unit,
+        weight,
+        weight_unit,
+        diet_preferences,
+        intolerances
+      FROM users
+      WHERE user_id = $1
+    `;
+
+    const result = await db.query(query, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User data not found' });
+    }
+
+    // Send the user's data back to the frontend
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/user/data', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const {gender, age, height, height_unit, weight, weight_unit, dietPreferences, intolerances } = req.body;
+
+    // Update the user's data in the database
+    const query = `
+      UPDATE users
+      SET 
+        gender = $1,
+        age = $2,  
+        height = $3,
+        height_unit = $4,
+        weight = $5,
+        weight_unit = $6,
+        diet_preferences = $7,
+        intolerances = $8
+      WHERE user_id = $9
+    `;
+
+    await db.query(query, [gender, age, height, height_unit, weight, weight_unit, dietPreferences, intolerances, userId]);
+
+    res.status(200).json({ message: 'User data saved successfully' });
+  } catch (error) {
+    console.error('Error saving user data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// In your backend (e.g., index.js)
+app.get('/api/user', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await db.query('SELECT username FROM users WHERE user_id = $1', [decoded.user_id]);
+
+    if (user.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ username: user.rows[0].username });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 app.get("/fetchModifiedPage", async (req, res) => {
   const targetUrl = req.query.url;

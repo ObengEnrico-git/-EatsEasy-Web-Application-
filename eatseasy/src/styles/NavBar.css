@@ -91,6 +91,62 @@
     text-decoration: none;
     font-size: 1.2rem;
     display: block;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.username-greeting {
+    margin-left: auto;
+    margin-right: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  
+  .username-greeting-mobile {
+    padding: 16px;
+    font-size: 1.5rem;
+    color: #000000;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 16px;
+  }
+  
+  .username-greeting-mobile .username {
+    color: #000000; 
+    font-weight: 800;
+    font-size: 1.5rem;
+  }
+
+  .navBar-mobile-menu ul li button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+  }
+
+  .navBar-mobile-menu ul li button:hover {
+    text-decoration: underline;
+  }
+
+  /* Logout Button Styling */
+.navBar-mobile-menu ul li button.logout-button {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: normal;
+}
+
+/* Remove hover effects for the logout button */
+.navBar-mobile-menu ul li button.logout-button:hover {
+    text-decoration: none;
+    color: white;
 }
 
 /* Mobile Styling */
