@@ -830,7 +830,7 @@ const BmiCalculator = () => {
                   }}
                   aria-label="Proceed to the next step"
                 >
-                  Sign up
+                  Generate Meal
                 </Button>
 
                 {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
@@ -864,6 +864,7 @@ const BmiCalculator = () => {
                         fontSize: "1.2rem",
                         fontWeight: "bold",
                         borderRadius: "10px",
+                        border: "5px solid #000000",
                         padding: "12px 0",
                         mt: 5,
                        
@@ -871,7 +872,7 @@ const BmiCalculator = () => {
                           backgroundColor: "FFFFFF",
                         },
                       }}
-                      aria-label="Proceed to the next step"
+                      aria-label="sign up as guest user"
                     >
                       Guest user
                     </Button>
@@ -888,6 +889,7 @@ const BmiCalculator = () => {
                       fontSize: "1.2rem",
                       fontWeight: "bold",
                       borderRadius: "10px",
+                      border: "5px solid #000000",
                       padding: "12px 0",
                       mt: 5,
 
@@ -895,7 +897,7 @@ const BmiCalculator = () => {
                         backgroundColor: "FFFFFF",
                       },
                     }}
-                    aria-label="Proceed to the next step"
+                    aria-label="sign up to a member of eateasy to unlock addtional features"
                   >
                     Sign up
                   </Button>
