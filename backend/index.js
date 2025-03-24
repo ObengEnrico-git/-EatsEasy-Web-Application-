@@ -159,8 +159,15 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+
+
 app.get("/", (req, res) => {
   res.send("Backend running on http://localhost:8000");
+});
+
+app.get("/checkAuth", authenticateToken,  (req, res) => {
+  // If authentication is successful backend ping to check if token expired or not 
+  res.status(200).json({ authenticated: true });
 });
 
 // Register a new user endpoint

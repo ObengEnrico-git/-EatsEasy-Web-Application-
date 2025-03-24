@@ -53,7 +53,16 @@ const MyChatBot = () => {
     },
   };
 
-  return <ChatBot flow={flow}   />;
+  return <ChatBot flow={flow}  styles={{
+      chatIconStyle: {
+        backgroundColor: "#2f855a", // Change the background color
+       
+      },
+      botBubbleStyle: {
+
+        
+      }
+    }}  />;
 };
 
 export default MyChatBot;

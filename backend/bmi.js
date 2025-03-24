@@ -137,13 +137,22 @@ router.post("/generatedResponse", authenticateToken, async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEN_AI);
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    
     const fullPrompt = nutritionContext + "\n" + prompt;
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
+    
+    // Get the streaming result
+    const resultStream = await model.generateContentStream(fullPrompt);
+
+    let fullText = "";
+    for await (const chunk of resultStream.stream) {
+      fullText += chunk.text();
+    }
+    
+    res.json({ response: fullText });
     
 
-    res.json({ response: text });
+    
   } catch (error) {
     console.error("Error generating chatBot response:", error);
     res.status(500).json({

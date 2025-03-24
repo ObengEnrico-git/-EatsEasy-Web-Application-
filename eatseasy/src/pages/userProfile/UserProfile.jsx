@@ -18,6 +18,7 @@ import UserBmi from "./UserBmi";
 import CheckIcon from "@mui/icons-material/Check";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MyChatBot from "./chatBot"
+import  "js-cookie";
 
 const UserProfile = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -41,7 +42,7 @@ const UserProfile = () => {
       // Parse the JSON string and pass it via navigate state
       navigate("/mealplan", { state: { mealData: JSON.parse(savedMealPlan) } });
     } else {
-      alert("No saved meal plan found.");
+      alert("please use the BMI calculator for meal plans.");
     }
   };
 
@@ -104,6 +105,8 @@ const UserProfile = () => {
 
     // Remove the token from the local storage
     localStorage.removeItem("token");
+    localStorage.removeItem("loginTime")
+
     // Set the openBackdrop state to false
     setOpenBackdrop(false);
     // Set the showLogoutAlert state to true
@@ -312,6 +315,7 @@ const UserProfile = () => {
                       </button>
 
                       <button
+                       
                         onClick={handleLoadSavedMealPlan}
                         className="px-6 py-2 bg-white font-bold text-black rounded-lg transition-all duration-300 hover:bg-[#D2F895] hover:text-Black hover:scale-105 active:scale-95 w-full sm:w-auto"
                       >
