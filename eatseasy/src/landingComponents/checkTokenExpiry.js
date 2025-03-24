@@ -3,6 +3,13 @@ import { useState, useEffect } from "react";
 
 const EXPIRY_TIME = 3600000; // 10 seconds for testing (replace with 3600000 for 1 hour)
 
+// how to use class and explaination
+//every 60 second runs instead of pinging the  backend this class check the last noted - current time login time 
+// if the result is over 3600000 = 1 hour it will the navbars will change to reflect token has expried 
+// more efficent than constant pings to backend
+ 
+  //use (const isValid = useTokenExpiry(6000);) returns true and false
+
 export const useTokenExpiry = (checkInterval = 6000) => {
   const [isTokenValid, setIsTokenValid] = useState(false);
 
