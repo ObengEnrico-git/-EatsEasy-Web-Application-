@@ -98,7 +98,10 @@ const UserProfile = () => {
 
   const handleLogout = async () => {
     // Set the openBackdrop state to true
-    setOpenBackdrop(true);
+    setOpenBackdrop(true)
+
+    // Simulate loading for 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
     // Simulate loading for 2 seconds
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -110,7 +113,7 @@ const UserProfile = () => {
     // Set the openBackdrop state to false
     setOpenBackdrop(false);
     // Set the showLogoutAlert state to true
-    setShowLogoutAlert(true);
+    setShowLogoutAlert(true)
 
     // Navigate after a brief delay to show the alert
     setTimeout(() => {
@@ -140,13 +143,10 @@ const UserProfile = () => {
       try {
         // Only fetch saved recipes initially as other endpoints aren't implemented yet
         // TODO: Implement the endpoints within index.js
-        const savedRecipesRes = await fetch(
-          "http://localhost:8000/api/recipes/saved",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+        const savedRecipesRes = await fetch('http://localhost:8000/api/recipes/saved', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           }
         );
 
@@ -178,8 +178,37 @@ const UserProfile = () => {
 
         console.log("Formatted saved recipes:", formattedSavedRecipes);
 
-        // Set empty arrays for unimplemented endpoints
-        setFavoriteRecipes([]);
+        // Fetch favourite recipes
+        const favouriteRecipesRes = await fetch('http://localhost:8000/api/recipes/favourites', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!favouriteRecipesRes.ok) {
+          throw new Error(`HTTP error! status: ${favouriteRecipesRes.status}`);
+        }
+
+        const favouriteRecipesData = await favouriteRecipesRes.json();
+        console.log('Favourite recipes:', favouriteRecipesData);
+
+        // Format the favourite recipes for the UI
+        const formattedFavouriteRecipes = favouriteRecipesData.map(recipe => ({
+          id: recipe.id,
+          favouriteId: recipe.favouriteId,
+          title: recipe.title,
+          image: recipe.image,
+          readyInMinutes: recipe.readyInMinutes,
+          servings: recipe.servings,
+          sourceUrl: recipe.sourceUrl,
+          favouritedAt: recipe.favouritedAt,
+          tags: []  // Can be extended later to add meal type, etc.
+        }));
+
+        // Set favourite recipes
+        setFavoriteRecipes(formattedFavouriteRecipes);
+        // Set empty array for bmiData for now
         setBmiData(null);
         setSavedRecipes(formattedSavedRecipes);
 
@@ -240,7 +269,7 @@ const UserProfile = () => {
 
   // If the user is not authenticated, return the NotLoggedIn component
   if (!isAuthenticated) {
-    return <NotLoggedIn />;
+    return <NotLoggedIn />
   }
 
   // Helper function to capitalize the first letter
@@ -286,21 +315,15 @@ const UserProfile = () => {
                         ? capitalizeFirstLetter(user.username)
                         : "Loading..."}
                     </Typography>
-                    <Typography
-                      variant="h6"
-                      className="text-green-200 text-sm md:text-base"
-                    >
-                      EatsEasy user since{" "}
+                    <Typography variant="h6" className="text-green-200 text-sm md:text-base">
+                      EatsEasy user since{' '}
                       {user?.created_at
-                        ? new Date(user.created_at).toLocaleDateString(
-                            "en-UK",
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            }
-                          )
-                        : "..."}
+                        ? new Date(user.created_at).toLocaleDateString('en-UK', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })
+                        : '...'}
                     </Typography>
                     <Typography className="text-green-100 mb-4 text-sm md:text-base">
                      {/* {user?.email || "Loading..."}*/}
@@ -353,7 +376,10 @@ const UserProfile = () => {
           </Box>
         ) : (
           <>
-            <UserBmi bmiData={bmiData} bmiHistory={bmiHistory} />
+            <UserBmi
+              bmiData={bmiData}
+              bmiHistory={bmiHistory}
+            />
 
             {/* Saved Weekly Meal Plans using FavoriteMealPlans component */}
             <FavouriteMealPlans
@@ -393,9 +419,9 @@ const UserProfile = () => {
       {/* Loading Backdrop */}
       <Backdrop
         sx={{
-          color: "#fff",
+          color: '#fff',
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
         }}
         open={openBackdrop}
       >
