@@ -270,6 +270,8 @@ router.post('/save-all', authenticateToken, async (req, res) => {
             ]);
 
             // Add the saved recipe to the savedRecipes array
+
+            
             savedRecipes.push({
                 saved_recipe_id: savedResult.rows[0].saved_recipe_id,
                 recipe_id: recipeId,

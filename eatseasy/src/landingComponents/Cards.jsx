@@ -33,9 +33,7 @@ const Cards = () => {
                     <div className='text-center font-medium'>
                         <p>More example text, blah blah</p>
                     </div>
-                    <button onClick={handleGetStarted} className='w-[200px] rounded-md font-medium my-6 mx-auto px-6 py-3'>
-                        Get Started
-                    </button>
+                    
                 </div>
 
                 {/* Step Two Card */}
@@ -61,9 +59,7 @@ const Cards = () => {
                     <div className='text-center font-medium'>
                         <p>More example text, blah blah</p>
                     </div>
-                    <button onClick={handleGetStarted} className='w-[200px] rounded-md font-medium my-6 mx-auto px-6 py-3'>
-                        Get Started
-                    </button>
+                    
                 </div>
             </div>
         </div>
