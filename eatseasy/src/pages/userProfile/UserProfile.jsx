@@ -148,7 +148,7 @@ const UserProfile = () => {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
-        );
+      });
 
         if (!savedRecipesRes.ok) {
           throw new Error(`HTTP error! status: ${savedRecipesRes.status}`);
