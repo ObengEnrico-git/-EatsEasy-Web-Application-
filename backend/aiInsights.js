@@ -104,7 +104,7 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
         const bmiResult = await db.query(bmiQuery, [userId]);
         const bmiData = bmiResult.rows[0] || null;
         
-        // 2. Get user's favourite recipes
+        // 2. Get user's favourite recipes from saved meal plans
         const favouritesQuery = `
             SELECT r.title, r.recipe_url
             FROM saved_recipes sr
@@ -116,7 +116,29 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
         const favouritesResult = await db.query(favouritesQuery, [userId]);
         const favouriteRecipes = favouritesResult.rows || [];
         
-        // 3. Generate AI insights using Gemini
+        // 3. Get user's individually favourited recipes
+        const individualFavouritesQuery = `
+            SELECT r.title, r.recipe_url, fir.meal_order
+            FROM favourite_individual_recipes fir
+            JOIN recipes r ON fir.recipe_id = r.recipe_id
+            WHERE fir.user_id = $1
+            ORDER BY fir.saved_at DESC
+            LIMIT 10
+        `;
+        const individualFavouritesResult = await db.query(individualFavouritesQuery, [userId]);
+        const individualFavourites = individualFavouritesResult.rows || [];
+        
+        // Group individual favourites by meal type
+        const mealTypePreferences = {};
+        individualFavourites.forEach(recipe => {
+            const mealType = recipe.meal_order || 'Not specified';
+            if (!mealTypePreferences[mealType]) {
+                mealTypePreferences[mealType] = [];
+            }
+            mealTypePreferences[mealType].push(recipe.title);
+        });
+        
+        // 4. Generate AI insights using Gemini
         const prompt = `Analyse this user's profile and provide 3-5 personalised insights about their diet, nutrition needs, and recipe recommendations. Please respond in British English.
                     
         User data:
@@ -128,7 +150,13 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
         - Activity level: ${bmiData?.activity_level || 'Not provided'}
         - Diet preferences: ${JSON.stringify(bmiData?.diet_preferences) || 'None'}
         - Intolerances: ${JSON.stringify(bmiData?.intolerances) || 'None'}
-        - Favourite recipes: ${favouriteRecipes.map(r => r.title).join(', ') || 'None'}
+        
+        Favourite recipes from meal plans: ${favouriteRecipes.map(r => r.title).join(', ') || 'None'}
+        
+        Individual favourited recipes by meal type:
+        ${Object.entries(mealTypePreferences).map(([mealType, recipes]) => 
+            `${mealType}: ${recipes.join(', ')}`
+        ).join('\n') || 'None'}
         
         Format your response as a JSON object with an array of insights, each with a 'title' and 'description'. Keep descriptions concise and actionable. Use the following structure exactly:
         
@@ -142,11 +170,17 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
           ]
         }
         
+        Your insights should include:
+        1. Analysis based on their BMI and dietary information
+        2. Pattern analysis from their favourite recipes (both from meal plans and individual favourites)
+        3. Meal-specific recommendations if they have favourited recipes for specific meal types
+        4. Personalised nutrition guidance based on their health metrics
+        
         Just provide the JSON object with no other text. Ensure it's valid JSON.`;
         
         const aiResponse = await generateContent(prompt);
         
-        // 4. Store insights in database for future reference
+        // 5. Store insights in database for future reference
         const storeInsightQuery = `
             INSERT INTO ai_insights (user_id, insights_data, created_at)
             VALUES ($1, $2, CURRENT_TIMESTAMP)

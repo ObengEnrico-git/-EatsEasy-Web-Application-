@@ -10,7 +10,7 @@ import {
   Snackbar
 } from "@mui/material"
 import { useNavigate } from "react-router-dom"
-import Navbar from "../NavBar"
+import NavBar from "../../landingComponents/Navbar"
 import NotLoggedIn from "./NotLoggedIn"
 import FavouriteMealPlans from "./FavouriteMealPlans"
 import FavouriteRecipes from "./FavouriteRecipes"
@@ -260,7 +260,7 @@ const UserProfile = () => {
   if (isLoading && isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#f5f7f5]">
-        <Navbar />
+        <NavBar />
         <div className="flex justify-center items-center h-[80vh]">
           <Typography>Loading...</Typography>
         </div>
@@ -281,7 +281,7 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f7f5]">
-      <Navbar />
+      <NavBar />
       <MyChatBot options={{ theme: { embedded: false } }} />
       <div className="bg-[#1b4332] text-white">
         <Container maxWidth="lg">
