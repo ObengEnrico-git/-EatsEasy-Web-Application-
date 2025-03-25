@@ -86,7 +86,7 @@ const UserProfile = () => {
   const handleLogout = async () => {
     // Set the openBackdrop state to true
     setOpenBackdrop(true)
-    
+
     // Simulate loading for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000))
 
@@ -97,7 +97,7 @@ const UserProfile = () => {
     setOpenBackdrop(false)
     // Set the showLogoutAlert state to true
     setShowLogoutAlert(true)
-    
+
     // Navigate after a brief delay to show the alert
     setTimeout(() => {
       // Navigate to the login page
@@ -127,7 +127,7 @@ const UserProfile = () => {
         // Only fetch saved recipes initially as other endpoints aren't implemented yet
         // TODO: Implement the endpoints within index.js
         const savedRecipesRes = await fetch('http://localhost:8000/api/recipes/saved', {
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
@@ -161,8 +161,37 @@ const UserProfile = () => {
 
         console.log('Formatted saved recipes:', formattedSavedRecipes);
 
-        // Set empty arrays for unimplemented endpoints
-        setFavoriteRecipes([]);
+        // Fetch favourite recipes
+        const favouriteRecipesRes = await fetch('http://localhost:8000/api/recipes/favourites', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!favouriteRecipesRes.ok) {
+          throw new Error(`HTTP error! status: ${favouriteRecipesRes.status}`);
+        }
+
+        const favouriteRecipesData = await favouriteRecipesRes.json();
+        console.log('Favourite recipes:', favouriteRecipesData);
+
+        // Format the favourite recipes for the UI
+        const formattedFavouriteRecipes = favouriteRecipesData.map(recipe => ({
+          id: recipe.id,
+          favouriteId: recipe.favouriteId,
+          title: recipe.title,
+          image: recipe.image,
+          readyInMinutes: recipe.readyInMinutes,
+          servings: recipe.servings,
+          sourceUrl: recipe.sourceUrl,
+          favouritedAt: recipe.favouritedAt,
+          tags: []  // Can be extended later to add meal type, etc.
+        }));
+
+        // Set favourite recipes
+        setFavoriteRecipes(formattedFavouriteRecipes);
+        // Set empty array for bmiData for now
         setBmiData(null);
         setSavedRecipes(formattedSavedRecipes);
 
@@ -217,7 +246,7 @@ const UserProfile = () => {
   }
 
   // If the user is not authenticated, return the NotLoggedIn component
-  if (!isAuthenticated) { 
+  if (!isAuthenticated) {
     return <NotLoggedIn />
   }
 
@@ -242,12 +271,12 @@ const UserProfile = () => {
                     </Typography>
                     <Typography variant="h6" className="text-green-200 text-sm md:text-base">
                       EatsEasy user since{' '}
-                      {user?.created_at 
+                      {user?.created_at
                         ? new Date(user.created_at).toLocaleDateString('en-UK', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })
                         : '...'}
                     </Typography>
                     <Typography className="text-green-100 mb-4 text-sm md:text-base">
@@ -296,13 +325,13 @@ const UserProfile = () => {
           </Box>
         ) : (
           <>
-            <UserBmi 
-              bmiData={bmiData} 
+            <UserBmi
+              bmiData={bmiData}
               bmiHistory={bmiHistory}
-            />  
-            
+            />
+
             {/* Saved Weekly Meal Plans using FavoriteMealPlans component */}
-            <FavouriteMealPlans 
+            <FavouriteMealPlans
               mealPlans={savedRecipes}
               onHover={setHoveredCard}
               hoveredCard={hoveredCard}
@@ -310,7 +339,7 @@ const UserProfile = () => {
               onPlanDeleted={handlePlanDeleted}
             />
 
-            <FavouriteRecipes 
+            <FavouriteRecipes
               recipes={favoriteRecipes}
               onHover={setHoveredCard}
               hoveredCard={hoveredCard}
@@ -326,8 +355,8 @@ const UserProfile = () => {
         autoHideDuration={1100}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          icon={<CheckIcon fontSize="inherit" />} 
+        <Alert
+          icon={<CheckIcon fontSize="inherit" />}
           severity="success"
           variant="filled"
           sx={{ width: '100%' }}
@@ -338,10 +367,10 @@ const UserProfile = () => {
 
       {/* Loading Backdrop */}
       <Backdrop
-        sx={{ 
-          color: '#fff', 
+        sx={{
+          color: '#fff',
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)' 
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
         }}
         open={openBackdrop}
       >

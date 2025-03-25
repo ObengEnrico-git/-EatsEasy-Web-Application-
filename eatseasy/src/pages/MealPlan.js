@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense} from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
 import "../styles/MealPlan.css";
@@ -8,8 +8,9 @@ import { IoMdPeople } from "react-icons/io";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
 import { Tooltip } from '@mui/material';
-import { Snackbar, Button } from '@mui/material';
+import { Snackbar, Button, CircularProgress } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
+import { FaCheck } from "react-icons/fa";
 
 const Loader = lazy(() => import("./Loader"));
 
@@ -42,10 +43,14 @@ const MealPlan = () => {
 
   const [hoveredHeart, setHoveredHeart] = useState(null);
   const [favouritedMeals, setFavouritedMeals] = useState({});
+  const [favouriteLoading, setFavouriteLoading] = useState({});
+  const [favouriteSuccess, setFavouriteSuccess] = useState({});
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarActionPath, setSnackbarActionPath] = useState('');
 
   const handleAcknowledge = () => {
     setShowInfoPanel(false);
@@ -60,7 +65,42 @@ const MealPlan = () => {
       document.body.style.overflow = "auto";
     };
   }, [showInfoPanel]);
-  
+
+  // Load user's favourite recipes when component mounts
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      if (!isAuthenticated) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          'http://localhost:8000/api/recipes/favourites',
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        // Create a map of favourited recipe IDs
+        const favourites = {};
+        response.data.forEach(recipe => {
+          favourites[recipe.id] = true;
+        });
+
+        setFavouritedMeals(favourites);
+      } catch (error) {
+        console.error('Error fetching favourites:', error);
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    fetchFavourites();
+  }, [isAuthenticated]);
+
   const fetchNewMealPlan = async () => {
     try {
       if (!targetCalories || isNaN(targetCalories)) {
@@ -141,11 +181,145 @@ const MealPlan = () => {
     navigate("/");
   };
 
-  const toggleFavourite = (mealId) => {
-    setFavouritedMeals((prev) => ({
+  const toggleFavourite = async (meal) => {
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const mealId = meal.id;
+
+    // If already in process of favouriting, return
+    if (favouriteLoading[mealId]) return;
+
+    // Toggle local state for UI feedback
+    setFavouritedMeals(prev => ({
       ...prev,
       [mealId]: !prev[mealId],
     }));
+
+    // Set loading state for this specific meal
+    setFavouriteLoading(prev => ({
+      ...prev,
+      [mealId]: true
+    }));
+
+    try {
+      const token = localStorage.getItem('token');
+
+      if (favouritedMeals[mealId]) {
+        // If it was previously favourited, we need to unfavourite it
+        // First, get the list of favourites to find the favouriteId
+        const favouritesResponse = await axios.get(
+          'http://localhost:8000/api/recipes/favourites',
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        const favourite = favouritesResponse.data.find(fav =>
+          fav.sourceUrl === meal.sourceUrl || fav.id === meal.id
+        );
+
+        if (favourite) {
+          // Delete the favourite
+          await axios.delete(
+            `http://localhost:8000/api/recipes/favourite/${favourite.favouriteId}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+
+          // Set success state for this specific meal
+          setFavouriteSuccess(prev => ({
+            ...prev,
+            [mealId]: true
+          }));
+
+          // Show snackbar
+          setSnackbarMessage('Recipe removed from favourites');
+          setSnackbarActionPath('/userprofile');
+          setOpenSnackbar(true);
+
+          // Reset success state after 2 seconds
+          setTimeout(() => {
+            setFavouriteSuccess(prev => ({
+              ...prev,
+              [mealId]: false
+            }));
+          }, 2000);
+        }
+      } else {
+        // If it wasn't favourited, save it to favourites
+        const response = await axios.post(
+          'http://localhost:8000/api/recipes/favourite',
+          {
+            title: meal.title,
+            imageUrl: `https://spoonacular.com/recipeImages/${meal.id}-312x231.${meal.imageType}`,
+            readyInMinutes: meal.readyInMinutes,
+            servings: meal.servings,
+            sourceUrl: meal.sourceUrl,
+            recipeId: meal.id
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        console.log(response);
+
+        // Set success state for this specific meal
+        setFavouriteSuccess(prev => ({
+          ...prev,
+          [mealId]: true
+        }));
+
+        // Show snackbar
+        setSnackbarMessage('Recipe added to favourites');
+        setSnackbarActionPath('/userprofile');
+        setOpenSnackbar(true);
+
+        // Reset success state after 2 seconds
+        setTimeout(() => {
+          setFavouriteSuccess(prev => ({
+            ...prev,
+            [mealId]: false
+          }));
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error toggling favourite:', error);
+
+      // Revert the local state change
+      setFavouritedMeals(prev => ({
+        ...prev,
+        [mealId]: !prev[mealId]
+      }));
+
+      // Show error message
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        navigate('/login');
+      } else {
+        setSnackbarMessage('Error saving favourite');
+        setSnackbarActionPath('');
+        setOpenSnackbar(true);
+      }
+    } finally {
+      // Clear loading state for this specific meal
+      setFavouriteLoading(prev => ({
+        ...prev,
+        [mealId]: false
+      }));
+    }
   };
 
 
@@ -211,7 +385,7 @@ const MealPlan = () => {
       const token = localStorage.getItem('token');
       await axios.post(
         'http://localhost:8000/api/recipes/save-all',
-        { 
+        {
           recipes: allRecipes,
           weekData: mealData.week
         },
@@ -280,21 +454,20 @@ const MealPlan = () => {
             onClick={refreshMealPlan}
             aria-label="Refresh meal plan"
             disabled={isLoading}
-            // style={{
-            //   animation: isLoading ? 'spin 1s linear infinite' : 'none'
-            // }}  
+          // style={{
+          //   animation: isLoading ? 'spin 1s linear infinite' : 'none'
+          // }}  
           >
             {isLoading ? "Refreshing..." : "Refresh All Meals"}
           </button>
 
           <button
-            className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-              isSaving || !isAuthenticated
-                ? 'bg-gray-300 cursor-not-allowed'
-                : saveSuccess
+            className={`px-4 py-2 rounded-lg transition-all duration-300 ${isSaving || !isAuthenticated
+              ? 'bg-gray-300 cursor-not-allowed'
+              : saveSuccess
                 ? 'bg-green-500 text-white'
                 : 'bg-[#1f9b48] hover:bg-[#194b34] text-white'
-            }`}
+              }`}
             onClick={handleFavoriteAll}
             disabled={isSaving || !isAuthenticated}
           >
@@ -324,9 +497,9 @@ const MealPlan = () => {
                   aria-label={`Refresh ${day} meal plan`}
                   disabled={loadingDays[day]}
                 >
-                  <Tooltip title={`Refresh ${day.charAt(0).toUpperCase() + day.slice(1) }'s meal plan`} placement="top">
+                  <Tooltip title={`Refresh ${day.charAt(0).toUpperCase() + day.slice(1)}'s meal plan`} placement="top">
                     <div>  {/* Wrapper div needed for Tooltip to work with disabled button */}
-                      <FiRefreshCw 
+                      <FiRefreshCw
                         className={`refresh-icon ${loadingDays[day] ? 'spinning' : ''}`}
                       />
                     </div>
@@ -340,9 +513,27 @@ const MealPlan = () => {
                       className="heart-icon"
                       onMouseEnter={() => setHoveredHeart(meal.id)} // Track hover
                       onMouseLeave={() => setHoveredHeart(null)} // Reset on unhover
-                      onClick={() => toggleFavourite(meal.id)}
+                      onClick={() => toggleFavourite(meal)}
+                      style={{ position: 'relative' }}
                     >
-                      {favouritedMeals[meal.id] || hoveredHeart === meal.id ? <FaHeart color="red" /> : <FaRegHeart />}
+                      {favouriteLoading[meal.id] ? (
+                        <CircularProgress size={20} color="error" />
+                      ) : favouriteSuccess[meal.id] ? (
+                        <div style={{
+                          backgroundColor: '#4CAF50',
+                          borderRadius: '50%',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <FaCheck color="white" size={16} />
+                        </div>
+                      ) : (
+                        favouritedMeals[meal.id] || hoveredHeart === meal.id ?
+                          <FaHeart color="red" /> :
+                          <FaRegHeart />
+                      )}
                     </div>
 
                     <div style={{
@@ -425,7 +616,7 @@ const MealPlan = () => {
               color="inherit"
               size="small"
               onClick={() => {
-                navigate('/userprofile');
+                navigate(snackbarActionPath);
                 handleCloseSnackbar();
               }}
             >
@@ -433,9 +624,13 @@ const MealPlan = () => {
             </Button>
           }
         >
-          You can view your favourite meal plan by clicking "View"
-          <br />
-          Saved on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString().slice(0, 5)}
+          {snackbarMessage || 'Operation successful'}
+          {snackbarMessage && snackbarMessage.includes('added') && (
+            <>
+              <br />
+              You can view your favourite recipes in your profile
+            </>
+          )}
         </MuiAlert>
       </Snackbar>
     </div>
