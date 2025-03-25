@@ -15,6 +15,7 @@ import NotLoggedIn from "./NotLoggedIn"
 import FavouriteMealPlans from "./FavouriteMealPlans"
 import FavouriteRecipes from "./FavouriteRecipes"
 import UserBmi from "./UserBmi"
+import AiInsight from "./AiInsight"
 import CheckIcon from '@mui/icons-material/Check';
 import LogoutIcon from '@mui/icons-material/Logout';
 
@@ -325,6 +326,8 @@ const UserProfile = () => {
           </Box>
         ) : (
           <>
+            <AiInsight />
+            
             <UserBmi
               bmiData={bmiData}
               bmiHistory={bmiHistory}
