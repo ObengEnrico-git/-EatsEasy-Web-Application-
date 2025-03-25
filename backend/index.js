@@ -9,6 +9,7 @@ const { query, validationResult } = require("express-validator");
 const cookieParser = require('cookie-parser');
 const recipesRouter = require('./recipes');
 const bmiRouter = require('./bmi');
+const aiInsightsRouter = require('./aiInsights');
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
@@ -617,6 +618,7 @@ app.get("/fetchModifiedPage", async (req, res) => {
 app.use('/api/recipes', recipesRouter);
 
 app.use('/api/bmi', bmiRouter);
+app.use('/api/ai-insights', aiInsightsRouter);
 
 // Export app for testing
 module.exports = app;
