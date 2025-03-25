@@ -1,8 +1,9 @@
-const express = require('express');
-const axios = require('axios');
-const db = require('./database');
-const dotenv = require('dotenv');
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const axios = require("axios");
+const db = require("./database");
+const dotenv = require("dotenv");
+const jwt = require("jsonwebtoken");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 dotenv.config();
 
@@ -14,62 +15,70 @@ const router = express.Router();
 // If the user is not authenticated, we will return the recipe from the Spoonacular API
 
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-    if (!token) {
-        return res.status(401).json({ error: 'No authentication token provided' });
+  if (!token) {
+    return res.status(401).json({ error: "No authentication token provided" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token expired" });
+      }
+      return res.status(403).json({ error: "Invalid token" });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            if (err.name === 'TokenExpiredError') {
-                return res.status(401).json({ error: 'Token expired' });
-            }
-            return res.status(403).json({ error: 'Invalid token' });
-        }
-
-        req.user = {
-            user_id: user.user_id,
-            email: user.email
-        };
-        next();
-    });
+    req.user = {
+      user_id: user.user_id,
+      email: user.email,
+    };
+    next();
+  });
 };
 
 // Save BMI data
-router.post('/saveBmi', authenticateToken, async (req, res) => {
-    try {
-        const { 
-            gender, 
-            age, 
-            weight, 
-            weight_unit, 
-            height, 
-            height_unit, 
-            activity_level,
-            diet_preferences,
-            intolerances,
-            bmi_status,
-            bmi
-        } = req.body;
+router.post("/saveBmi", authenticateToken, async (req, res) => {
+  try {
+    const {
+      gender,
+      age,
+      weight,
+      weight_unit,
+      height,
+      height_unit,
+      activity_level,
+      diet_preferences,
+      intolerances,
+      bmi_status,
+      bmi,
+    } = req.body;
 
-        // Validate gender
-        if (!['Male', 'Female'].includes(gender)) {
-            return res.status(400).json({ error: 'Invalid gender value' });
-        }
+    // Validate gender
+    if (!["Male", "Female"].includes(gender)) {
+      return res.status(400).json({ error: "Invalid gender value" });
+    }
 
-        // Validate numeric values
-        if (isNaN(parseFloat(bmi)) || isNaN(parseFloat(age)) || 
-            isNaN(parseFloat(weight)) || isNaN(parseFloat(height))) {
-            return res.status(400).json({ error: 'Invalid numeric values' });
-        }
+    // Validate numeric values
+    if (
+      isNaN(parseFloat(bmi)) ||
+      isNaN(parseFloat(age)) ||
+      isNaN(parseFloat(weight)) ||
+      isNaN(parseFloat(height))
+    ) {
+      return res.status(400).json({ error: "Invalid numeric values" });
+    }
 
-        // Ensure arrays are properly formatted
-        const formattedDietPreferences = Array.isArray(diet_preferences) ? diet_preferences : [];
-        const formattedIntolerances = Array.isArray(intolerances) ? intolerances : [];
+    // Ensure arrays are properly formatted
+    const formattedDietPreferences = Array.isArray(diet_preferences)
+      ? diet_preferences
+      : [];
+    const formattedIntolerances = Array.isArray(intolerances)
+      ? intolerances
+      : [];
 
-        const query = `
+    const query = `
             INSERT INTO bmi_values (
                 user_id, 
                 gender, 
@@ -89,37 +98,75 @@ router.post('/saveBmi', authenticateToken, async (req, res) => {
             RETURNING *
         `;
 
-        const values = [
-            req.user.user_id,
-            gender,
-            parseFloat(age),
-            parseFloat(weight),
-            weight_unit,
-            parseFloat(height),
-            height_unit,
-            activity_level,
-            formattedDietPreferences,
-            formattedIntolerances,
-            bmi_status,
-            parseFloat(bmi)
-        ];
+    const values = [
+      req.user.user_id,
+      gender,
+      parseFloat(age),
+      parseFloat(weight),
+      weight_unit,
+      parseFloat(height),
+      height_unit,
+      activity_level,
+      formattedDietPreferences,
+      formattedIntolerances,
+      bmi_status,
+      parseFloat(bmi),
+    ];
 
-        const result = await db.query(query, values);
-        res.status(200).json(result.rows[0]);
-    } catch (error) {
-        console.error('Error saving BMI:', error);
-        res.status(500).json({ 
-            error: error.message,
-            details: error.detail || 'No additional details available'
-        });
+    const result = await db.query(query, values);
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error saving BMI:", error);
+    res.status(500).json({
+      error: error.message,
+      details: error.detail || "No additional details available",
+    });
+  }
+});
+
+router.post("/generatedResponse", authenticateToken, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    res.status(400).json({ error: "prompt is requried" });
+  }
+
+  try {
+    const nutritionContext =
+      "You are a nutritionist. All questions and answers should be related only to food or how food will affect health. Use british english and make the answer concise";
+
+    const genAI = new GoogleGenerativeAI(process.env.GEN_AI);
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    
+    const fullPrompt = nutritionContext + "\n" + prompt;
+    
+    // Get the streaming result
+    const resultStream = await model.generateContentStream(fullPrompt);
+
+    let fullText = "";
+    for await (const chunk of resultStream.stream) {
+      fullText += chunk.text();
     }
+    
+    res.json({ response: fullText });
+    
+
+    
+  } catch (error) {
+    console.error("Error generating chatBot response:", error);
+    res.status(500).json({
+      error: "Error generating chatBot response:",
+      details: error.message,
+    });
+  }
 });
 
 // Get BMI history for a user
-router.get('/history', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.user_id;
-        const query = `
+router.get("/history", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const query = `
             SELECT 
                 bmi_id,
                 gender,
@@ -139,19 +186,19 @@ router.get('/history', authenticateToken, async (req, res) => {
             ORDER BY created_at DESC
         `;
 
-        const result = await db.query(query, [userId]);
-        res.status(200).json(result.rows);
-    } catch (error) {
-        console.error('Error fetching BMI history:', error);
-        res.status(500).json({ error: error.message });
-    }
+    const result = await db.query(query, [userId]);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error fetching BMI history:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get latest BMI data for a user
-router.get('/latest', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.user_id;
-        const query = `
+router.get("/latest", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const query = `
             SELECT 
                 bmi_id,
                 gender,
@@ -172,12 +219,12 @@ router.get('/latest', authenticateToken, async (req, res) => {
             LIMIT 1
         `;
 
-        const result = await db.query(query, [userId]);
-        res.status(200).json(result.rows[0] || null);
-    } catch (error) {
-        console.error('Error fetching latest BMI:', error);
-        res.status(500).json({ error: error.message });
-    }
+    const result = await db.query(query, [userId]);
+    res.status(200).json(result.rows[0] || null);
+  } catch (error) {
+    console.error("Error fetching latest BMI:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;

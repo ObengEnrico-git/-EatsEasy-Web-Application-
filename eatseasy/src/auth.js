@@ -10,6 +10,9 @@ export const login = async (email, password) => {
       }, {
           withCredentials: true
       });
+
+       // Store login time in localStorage
+    
       return response.data;
   } catch (error) {
       throw new Error(error.response?.data?.error || 'Login failed');

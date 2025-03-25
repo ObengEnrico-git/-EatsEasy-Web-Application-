@@ -59,7 +59,7 @@ const InterestSelector = ({ selectedInterests, handleSelect }) => {
                   ? "#78AB80"
                   : "#fff",
                 color: selectedInterests.includes(interest) ? "000000" : "#000",
-                border: "3px solid black",
+                border: "2px solid grey",
                 borderRadius: "30px",
                 padding: "20px",
                 cursor: "pointer",
