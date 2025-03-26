@@ -10,7 +10,7 @@ import {
   Snackbar
 } from "@mui/material"
 import { useNavigate } from "react-router-dom"
-import NavBar from "../../landingComponents/Navbar"
+import NavBar from "../NavBar"
 import NotLoggedIn from "./NotLoggedIn"
 import FavouriteMealPlans from "./FavouriteMealPlans"
 import FavouriteRecipes from "./FavouriteRecipes"

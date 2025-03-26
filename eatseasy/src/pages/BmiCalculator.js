@@ -191,17 +191,17 @@ const BmiCalculator = () => {
       return;
     }
 
-    let heightInCm;
+    // Check if height is valid based on unit
     if (heightUnit === "cm") {
-      heightInCm = parseFloat(height);
+      const heightInCm = parseFloat(height);
       if (!heightInCm || heightInCm <= 0) {
         alert("Please enter a valid height in cm.");
         return;
       }
-    } else {
-      heightInCm = convertFeetAndInchesToCm(height);
-      if (heightInCm <= 0) {
-        alert("Please enter valid height in feet and inches.");
+    } else if (heightUnit === "ft") {
+      const heightInFeet = parseFloat(height);
+      if (!heightInFeet || heightInFeet <= 0) {
+        alert("Please enter a valid height in feet and inches.");
         return;
       }
     }
@@ -468,14 +468,24 @@ const BmiCalculator = () => {
     }
   };
 
-
+  // Add this function to handle going back to previous step
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.history.pushState({ step: currentStep - 1 }, "");
+    }
+  };
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#d9edda", minHeight: "100vh" }}>
       <NavBar />
       <div
         className="bmiCalculator-page-container"
-        style={{ display: "flex", flexDirection: "row" }}
+        style={{ 
+          display: "flex", 
+          flexDirection: "row",
+          backgroundColor: "white" // Explicitly setting the container background to white
+        }}
       >
         <div className="container">
           <div style={{ textAlign: "center" }}>
@@ -488,6 +498,7 @@ const BmiCalculator = () => {
                 color: "white",
                 marginBottom: "20px",
                 padding: "20px", // optional: adjust padding to create space around the text
+                borderRadius: "10px",
               }}
             >
               EatsEasy
@@ -643,7 +654,9 @@ const BmiCalculator = () => {
                   "&:hover": {
                     backgroundColor: "FFFFFF",
                   },
+                  textTransform: "none",
                 }}
+                endIcon={<span style={{ color: "white" }}>&#8594;</span>}
                 aria-label="Proceed to the next step"
               >
                 Next
@@ -734,52 +747,53 @@ const BmiCalculator = () => {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: "#13290C",
-                      color: "#fff",
-                      fontSize: "1.2rem",
-                      fontWeight: "bold",
-                      borderRadius: "15px",
-                      padding: "12px 0",
-                      mt: 5,
-                      "&:hover": {
-                        backgroundColor: "FFFFFF",
-                      },
-                    }}
-                    aria-label="Proceed to the next step"
-                  >
-                    Next
-                  </Button>
+                  <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={goToPreviousStep}
+                      sx={{
+                        borderColor: "#13290C",
+                        color: "#13290C",
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        borderRadius: "15px",
+                        padding: "12px 0",
+                        flex: 1,
+                        "&:hover": {
+                          backgroundColor: "#f5f5f5",
+                          borderColor: "#13290C",
+                        },
+                        textTransform: "none",
+                      }}
+                      startIcon={<span>&#8592;</span>}
+                      aria-label="Go back to the previous step"
+                    >
+                      Back
+                    </Button>
 
-                  {/* <Button
-                    type="submit"
-                    onClick={goBackStep}
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: "#38a169",
-                      color: "#fff",
-                      fontSize: "1.2rem",
-                      fontWeight: "bold",
-                      borderRadius: "30px",
-                      padding: "12px 0",
-                      mt: 5,
-                      "&:hover": {
-                        backgroundColor: "FFFFFF",
-                      },
-                    }}
-                    aria-label="Proceed to the next step"
-                  >
-                    Back
-                  </Button> */}
-
-                  {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
-                    Reset{" "}
-                  </button> */}
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#13290C",
+                        color: "#fff",
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        borderRadius: "15px",
+                        padding: "12px 0",
+                        flex: 1,
+                        "&:hover": {
+                          backgroundColor: "FFFFFF",
+                        },
+                        textTransform: "none",
+                      }}
+                      endIcon={<span style={{ color: "white" }}>&#8594;</span>}
+                      aria-label="Proceed to the next step"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               }
             </form>
@@ -812,37 +826,59 @@ const BmiCalculator = () => {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  sx={{
-                    backgroundColor: "#13290C",
-                    color: "#fff",
-                    fontSize: "1.2rem",
-                    fontWeight: "bold",
-                    borderRadius: "15px",
-                    padding: "12px 0",
-                    mt: 5,
-                    "&:hover": {
-                      backgroundColor: "FFFFFF",
-                    },
-                  }}
-                  aria-label="Proceed to the next step"
-                >
-                  Generate Meal
-                </Button>
+                <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={goToPreviousStep}
+                    sx={{
+                      borderColor: "#13290C",
+                      color: "#13290C",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "15px",
+                      padding: "12px 0",
+                      flex: 1,
+                      "&:hover": {
+                        backgroundColor: "#f5f5f5",
+                        borderColor: "#13290C",
+                      },
+                      textTransform: "none",
+                    }}
+                    startIcon={<span>&#8592;</span>}
+                    aria-label="Go back to the previous step"
+                  >
+                    Back
+                  </Button>
 
-                {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
-                    Reset{" "}
-                  </button> */}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{
+                      backgroundColor: "#13290C",
+                      color: "#fff",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "15px",
+                      padding: "12px 0",
+                      flex: 1,
+                      "&:hover": {
+                        backgroundColor: "FFFFFF",
+                      },
+                      textTransform: "none",
+                    }}
+                    // endIcon={<span style={{ color: "white" }}>&#8594;</span>}
+                    aria-label="Generate meal plan"
+                  >
+                    Generate Meal
+                  </Button>
+                </div>
               </div>
             </form>
           )}
           {currentStep === 4 && !isValid && (
             <form
               data-testid="form3"
-              
             >
               <div>
                 <div>
@@ -902,10 +938,6 @@ const BmiCalculator = () => {
                     Sign up
                   </Button>
                 </div>
-
-                {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
-                    Reset{" "}
-                  </button> */}
               </div>
             </form>
           )}
