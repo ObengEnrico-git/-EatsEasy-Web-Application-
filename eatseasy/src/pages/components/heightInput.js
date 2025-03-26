@@ -1,89 +1,149 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import FloatingLabelInput from "./componentStyles/FloatingLabelInput";
 import {
   FormControl,
-  
   RadioGroup,
   FormControlLabel,
   Radio,
 } from "@mui/material";
 import "../../styles/BmiCalculator.css";
 
-
 export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange, label, value }) {
   const [feet, setFeet] = useState("");
   const [inches, setInches] = useState("");
-  const [measurements, setMeasurements] = useState("");
+  const [cmValue, setCmValue] = useState("");
   const [error, setError] = useState("");
-  const originalUnitRef = useRef(unit);
-
-  const measurementsOptions = [
-    { value: "cm", label: "Centimeters (cm)" },
-    { value: "ft", label: "Feet (ft)" },
-  ];
-
-
-  // On mount, if a value is provided, prefill the state
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Initial setup based on unit and value
   useEffect(() => {
-    if (value) {
-      if (unit === "cm") {
-        setMeasurements(value);
-      } else if (unit === "ft") {
-        const numericValue = parseFloat(value);
-        if (!isNaN(numericValue)) {
-          const totalInches = numericValue / 2.54;
-          const ft = Math.floor(totalInches / 12);
-          const inch = Math.round(totalInches % 12);
-          setFeet(ft.toString());
-          setInches(inch.toString());
-          // Also store a combined value (in ft) for the parent if needed
-          setMeasurements(ft + inch / 12);
+    // Only handle the initial values or when units change externally
+    if (!isInitialized) {
+      if (value) {
+        if (unit === "cm") {
+          setCmValue(value);
+        } else if (unit === "ft") {
+          const numericValue = parseFloat(value);
+          if (!isNaN(numericValue)) {
+            const wholeFeet = Math.floor(numericValue);
+            const decimalPart = numericValue - wholeFeet;
+            const inchesValue = Math.round(decimalPart * 12);
+            
+            setFeet(wholeFeet.toString());
+            setInches(inchesValue.toString());
+          }
         }
       }
-      if (onHeightChange) {
-        onHeightChange(value);
-      }
+      setIsInitialized(true);
     }
-  }, [value, unit, onHeightChange]);
+  }, [unit, value, isInitialized]); // Include the dependencies
 
+  // Handle unit change
   const handleUnitChange = (e) => {
     const newUnit = e.target.value;
     setError("");
-    if (originalUnitRef.current !== newUnit && measurements !== "") {
-      // Convert the current measurement to the new unit
-      const numericValue = parseFloat(measurements);
-      if (!isNaN(numericValue)) {
-        if (newUnit === "ft") {
-          // Convert from cm to ft: use 1 cm = 0.393701 in
-          const totalInches = numericValue * 0.393701;
-          const ft = Math.floor(totalInches / 12);
-          const inch = Math.round(totalInches % 12);
-          setFeet(ft.toString());
-          setInches(inch.toString());
-          // Optionally update measurements to a ft value (optional)
-          setMeasurements(ft + inch / 12);
-        } else {
-          // Convert from ft to cm: assume measurements is in ft
-          // (if measurements is stored as a number in ft, convert back to cm)
-          const cmValue = numericValue * 30.48;
-          setMeasurements(cmValue.toFixed(2));
+    
+    // Convert values when switching units
+    if (newUnit === "cm" && unit === "ft" && feet !== "") {
+      // Convert from feet/inches to cm
+      const feetValue = parseFloat(feet || "0");
+      const inchesValue = parseFloat(inches || "0");
+      
+      if (!isNaN(feetValue) || !isNaN(inchesValue)) {
+        const totalFeet = feetValue + (inchesValue / 12);
+        const cmValue = (totalFeet * 30.48).toFixed(2);
+        setCmValue(cmValue);
+        
+        // Update parent component with new value in cm
+        if (onHeightChange) {
+          onHeightChange(cmValue);
         }
       }
-      originalUnitRef.current = newUnit;
+    } 
+    else if (newUnit === "ft" && unit === "cm" && cmValue !== "") {
+      // Convert from cm to feet/inches
+      const cm = parseFloat(cmValue);
+      
+      if (!isNaN(cm)) {
+        // Convert to inches first
+        const totalInches = cm / 2.54;
+        // Calculate feet and remaining inches
+        const feetValue = Math.floor(totalInches / 12);
+        const inchesValue = Math.round(totalInches % 12);
+        
+        setFeet(feetValue.toString());
+        setInches(inchesValue.toString());
+        
+        // Update parent component with new value in feet
+        if (onHeightChange) {
+          onHeightChange((feetValue + (inchesValue / 12)).toFixed(2));
+        }
+      }
     }
+    
+    // Update the unit in parent component
     if (UnitChange) {
       UnitChange(newUnit);
     }
   };
 
-  const handleNumberInput = (e, setter) => {
+  // Handle cm input change
+  const handleCmChange = (e) => {
     const value = e.target.value;
     if (!isNaN(value) && value.trim() !== "") {
-      setter(value);
+      setCmValue(value);
       setError("");
+      
+      // Update parent value
+      if (onHeightChange) {
+        onHeightChange(value);
+      }
     } else {
-      setter("");
+      setCmValue("");
       setError("Please enter a valid number.");
+    }
+  };
+
+  // Handle feet input change
+  const handleFeetChange = (e) => {
+    const value = e.target.value;
+    if (!isNaN(value) && value.trim() !== "") {
+      setFeet(value);
+      setError("");
+      
+      // Update parent with combined value
+      updateCombinedValue(value, inches);
+    } else {
+      setFeet("");
+      setError("Please enter a valid number.");
+    }
+  };
+
+  // Handle inches input change
+  const handleInchesChange = (e) => {
+    const value = e.target.value;
+    if (!isNaN(value) && value.trim() !== "") {
+      setInches(value);
+      setError("");
+      
+      // Update parent with combined value
+      updateCombinedValue(feet, value);
+    } else {
+      setInches("");
+      setError("Please enter a valid number.");
+    }
+  };
+
+  // Helper function to update the combined feet+inches value and notify parent
+  const updateCombinedValue = (feetVal, inchesVal) => {
+    const feetValue = parseFloat(feetVal || "0");
+    const inchesValue = parseFloat(inchesVal || "0");
+    
+    if (!isNaN(feetValue) || !isNaN(inchesValue)) {
+      const combinedValue = feetValue + (inchesValue / 12);
+      if (onHeightChange) {
+        onHeightChange(combinedValue.toFixed(2));
+      }
     }
   };
 
@@ -93,43 +153,20 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
     const pastedText = e.clipboardData.getData("Text");
     if (!isNaN(pastedText) && pastedText.trim() !== "") {
       e.target.value = pastedText;
-      setMeasurements(pastedText);
+      
+      if (unit === "cm") {
+        setCmValue(pastedText);
+        if (onHeightChange) {
+          onHeightChange(pastedText);
+        }
+      }
+      
       setError("");
     } else {
       setError("Invalid paste: Only numbers are allowed");
       console.warn("Invalid paste: Only numbers are allowed");
     }
   };
-
-  // Convert between cm and ft:
-  // If converting from cm to ft, divide by 30.48.
-  // If converting from ft to cm, multiply by 30.48.
-  const convertMeasurements = (value, toUnit) => {
-    const numericValue = parseFloat(value);
-    if (isNaN(numericValue)) return "";
-    if (toUnit === "ft") {
-      return (numericValue * 0.393701).toFixed(2); // convert cm to inches then format later
-    } else {
-      return (numericValue / 0.393701).toFixed(2); // convert inches to cm
-    }
-  };
-
-  // When the unit changes, convert the current measurement accordingly.
-  useEffect(() => {
-    if (originalUnitRef.current !== unit && measurements !== "") {
-      setMeasurements((prev) => {
-        return convertMeasurements(prev, unit);
-      });
-      originalUnitRef.current = unit;
-    }
-  }, [unit, measurements]);
-
-  // Lift state: notify the parent when measurements change.
-  useEffect(() => {
-    if (onHeightChange) {
-      onHeightChange(measurements);
-    }
-  }, [measurements, onHeightChange]);
 
   return (
     <div className="relative">
@@ -139,11 +176,8 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
             id="heightInput"
             label={label}
             type="number"
-            value={measurements}
-            onChange={(e) => {
-              setMeasurements(e.target.value);
-              onHeightChange(e.target.value);
-            }}
+            value={cmValue}
+            onChange={handleCmChange}
             onPaste={pasteChecks}
             onKeyDown={(e) => {
               if (["e", "E", "+", "-"].includes(e.key)) {
@@ -163,7 +197,7 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
               label="Feet"
               type="number"
               value={feet}
-              onChange={(e) => handleNumberInput(e, setFeet)}
+              onChange={handleFeetChange}
               onKeyDown={(e) => {
                 if (["e", "E", "+", "-"].includes(e.key)) {
                   e.preventDefault();
@@ -179,7 +213,7 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
               label="Inches"
               type="number"
               value={inches}
-              onChange={(e) => handleNumberInput(e, setInches)}
+              onChange={handleInchesChange}
               onKeyDown={(e) => {
                 if (["e", "E", "+", "-"].includes(e.key)) {
                   e.preventDefault();
@@ -201,7 +235,10 @@ export function HeightInput({ disabled = false, onHeightChange, unit, UnitChange
             value={unit}
             onChange={handleUnitChange}
           >
-            {measurementsOptions.map((option) => (
+            {[
+              { value: "cm", label: "Centimetres (cm)" },
+              { value: "ft", label: "Feet (ft)" },
+            ].map((option) => (
               <FormControlLabel
                 key={option.value}
                 value={option.value}

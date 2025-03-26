@@ -9,6 +9,7 @@ const { query, validationResult } = require("express-validator");
 const cookieParser = require('cookie-parser');
 const recipesRouter = require('./recipes');
 const bmiRouter = require('./bmi');
+const aiInsightsRouter = require('./aiInsights');
 const { getBrowser } = require("./globalBrowser"); // import new Puppeteer browser instance
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
@@ -159,8 +160,15 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+
+
 app.get("/", (req, res) => {
   res.send("Backend running on http://localhost:8000");
+});
+
+app.get("/checkAuth", authenticateToken,  (req, res) => {
+  // If authentication is successful backend ping to check if token expired or not 
+  res.status(200).json({ authenticated: true });
 });
 
 // Register a new user endpoint
@@ -610,6 +618,7 @@ app.get("/fetchModifiedPage", async (req, res) => {
 app.use('/api/recipes', recipesRouter);
 
 app.use('/api/bmi', bmiRouter);
+app.use('/api/ai-insights', aiInsightsRouter);
 
 // Export app for testing
 module.exports = app;

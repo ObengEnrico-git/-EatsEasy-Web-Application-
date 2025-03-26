@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import NavBar from "./NavBar";
+import NavBar from "../landingComponents/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
 import "../styles/BmiCalculator.css";
@@ -21,12 +21,14 @@ import FloatingLabelInput from "./components/componentStyles/FloatingLabelInput"
 import { styled } from "@mui/material/styles";
 import WeightInput from "./components/weightInput";
 import HeightInput from "./components/heightInput";
-import { useTheme } from '@mui/material/styles';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Chip from '@mui/material/Chip';
+import { useTheme } from "@mui/material/styles";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Chip from "@mui/material/Chip";
+import { WeightGoal } from "./WeightGoal.js";
+import { useTokenExpiry } from "../landingComponents/checkTokenExpiry.js";
 
 const BorderLinearProgress = styled(LinearProgress)(() => ({
   height: 8,
@@ -90,7 +92,7 @@ const BmiCalculator = () => {
   const [optionPicked, setOptionPicked] = usePersistedState("optionPicked", "");
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isCalculated, setIsCalculated] = useState(false);
-  const [showGoalPopup, setShowGoalPopup] = useState(false);
+
   const [weightGoal, setWeightGoal] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   // Add at the top with your other state variables
@@ -99,34 +101,51 @@ const BmiCalculator = () => {
     []
   );
 
+  const isValid = useTokenExpiry(6000);
+  const totalStep = isValid ? 3 : 4;
+
   useEffect(() => {
-    const storedBMI = Cookies.get('bmiData');
+    const storedBMI = Cookies.get("bmiData");
     if (storedBMI) {
       try {
         const parsedData = JSON.parse(storedBMI);
-        console.log('Retrieved BMI Data:', parsedData);
-  
-        if (parsedData && typeof parsedData === 'object') {
-          setBmi(parsedData.bmi || '');
-          setStatus(parsedData.status || '');
-          setWeightGoal(parsedData.weightGoal || '');
-          setWeight(parsedData.weight || '');
-          setWeightUnit(parsedData.weightUnit || 'kg');
-          setGender(parsedData.gender || '');
-          setHeight(parsedData.height || '');
-          setHeightUnit(parsedData.heightUnit || 'cm');
-          setAge(parsedData.age || '');
-          setOptionPicked(parsedData.optionPicked || '');
+        console.log("Retrieved BMI Data:", parsedData);
+
+        if (parsedData && typeof parsedData === "object") {
+          setBmi(parsedData.bmi || "");
+          setStatus(parsedData.status || "");
+          setWeightGoal(parsedData.weightGoal || "");
+          setWeight(parsedData.weight || "");
+          setWeightUnit(parsedData.weightUnit || "kg");
+          setGender(parsedData.gender || "");
+          setHeight(parsedData.height || "");
+          setHeightUnit(parsedData.heightUnit || "cm");
+          setAge(parsedData.age || "");
+          setOptionPicked(parsedData.optionPicked || "");
           setDietOptions(parsedData.diet || []);
           setSelectedAllergens(parsedData.selectedAllergens || []);
           setIsCalculated(true);
         }
       } catch (error) {
-        console.error('Error parsing BMI data from cookies:', error);
+        console.error("Error parsing BMI data from cookies:", error);
       }
     }
-  }, [setBmi, setStatus, setWeightGoal, setWeight, setWeightUnit, setGender, setHeight, setHeightUnit, setAge, setOptionPicked, setDietOptions, setSelectedAllergens, setIsCalculated]);
-  
+  }, [
+    setBmi,
+    setStatus,
+    setWeightGoal,
+    setWeight,
+    setWeightUnit,
+    setGender,
+    setHeight,
+    setHeightUnit,
+    setAge,
+    setOptionPicked,
+    setDietOptions,
+    setSelectedAllergens,
+    setIsCalculated,
+  ]);
+
   const theme = useTheme();
 
   // Add this useEffect to ensure diet is always an array
@@ -172,17 +191,17 @@ const BmiCalculator = () => {
       return;
     }
 
-    let heightInCm;
+    // Check if height is valid based on unit
     if (heightUnit === "cm") {
-      heightInCm = parseFloat(height);
+      const heightInCm = parseFloat(height);
       if (!heightInCm || heightInCm <= 0) {
         alert("Please enter a valid height in cm.");
         return;
       }
-    } else {
-      heightInCm = convertFeetAndInchesToCm(height);
-      if (heightInCm <= 0) {
-        alert("Please enter valid height in feet and inches.");
+    } else if (heightUnit === "ft") {
+      const heightInFeet = parseFloat(height);
+      if (!heightInFeet || heightInFeet <= 0) {
+        alert("Please enter a valid height in feet and inches.");
         return;
       }
     }
@@ -191,12 +210,16 @@ const BmiCalculator = () => {
     window.history.pushState({ step: 2 }, "");
   };
 
-   // Listen to popstate events (browser back button)
+  // Listen to popstate events (browser back button)
   useEffect(() => {
     const handlePopState = (event) => {
       // Check the history state or simply go back one step
       if (currentStep === 2) {
         setCurrentStep(1);
+      } else if (currentStep === 3) {
+        setCurrentStep(2);
+      } else {
+        setCurrentStep(3);
       }
     };
 
@@ -216,7 +239,9 @@ const BmiCalculator = () => {
         ? parseFloat(weight)
         : convertPoundsToKg(parseFloat(weight));
     const heightInMeters = heightInCm / 100;
-    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(2);
+    const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(
+      2
+    );
 
     setBmi(bmiValue);
 
@@ -240,21 +265,23 @@ const BmiCalculator = () => {
     setStatus(bmiStatus);
     setWeightGoal(recommendedGoal);
     setIsCalculated(true);
-    setShowGoalPopup(true);
+
+    setCurrentStep(3);
+    window.history.pushState({ step: 3 }, "");
 
     // Save BMI data to the database
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        console.error('No token found');
+        console.error("No token found");
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/bmi/saveBmi', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/api/bmi/saveBmi", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           gender,
@@ -267,15 +294,15 @@ const BmiCalculator = () => {
           diet_preferences: diet,
           intolerances: selectedAllergens,
           bmi: parseFloat(bmiValue),
-          bmi_status: bmiStatus
-        })
+          bmi_status: bmiStatus,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save BMI data');
+        throw new Error("Failed to save BMI data");
       }
 
-      console.log('Sending BMI data:', {
+      console.log("Sending BMI data:", {
         gender,
         age,
         weight,
@@ -286,33 +313,38 @@ const BmiCalculator = () => {
         diet_preferences: diet,
         intolerances: selectedAllergens,
         bmi: parseFloat(bmiValue),
-        bmi_status: bmiStatus
+        bmi_status: bmiStatus,
       });
 
       const data = await response.json();
-      console.log('BMI data saved:', data);
+      console.log("BMI data saved:", data);
     } catch (error) {
-      console.error('Error saving BMI data:', error);
+      console.error("Error saving BMI data:", error);
     }
   };
 
-    Cookies.set('bmiData', JSON.stringify({ 
-      status, 
-      bmi, 
-      weightGoal,
-      weight,        
-      weightUnit,
-      gender,
-      height,    
-      heightUnit,
-      age,
-      optionPicked,
-      diet,
-      selectedAllergens,
-    }), { expires: 1 });
+  if (currentStep === 3) {
+    Cookies.set(
+      "bmiData",
+      JSON.stringify({
+        status,
+        bmi,
+        weightGoal,
+        weight,
+        weightUnit,
+        gender,
+        height,
+        heightUnit,
+        age,
+        optionPicked,
+        diet,
+        selectedAllergens,
+      }),
+      { expires: 1 }
+    );
+  }
 
-
-  const calculateCalorieCount = (goal) => {
+  const calculateCalorieCount = (goal, targetRoute) => {
     if (!isCalculated) return null;
 
     const heightInCm =
@@ -361,15 +393,15 @@ const BmiCalculator = () => {
       targetCalories += 500;
     }
 
-    fetchMealPlan(targetCalories);
+    fetchMealPlan(targetCalories, targetRoute);
     console.log(targetCalories);
     console.log(diet);
 
     console.log(selectedAllergens);
   };
 
-  const fetchMealPlan = async (targetCalories) => {
-    try {
+  const fetchMealPlan = async (targetCalories, route) => {    
+      try {
       const response = await axios.get("http://localhost:8000/mealplan", {
         params: {
           targetCalories,
@@ -378,20 +410,38 @@ const BmiCalculator = () => {
         },
       });
       const mealData = response.data;
-      navigate("/mealplan", {
+
+      if(route === "/mealplan") {
+
+        navigate("/mealplan", {
         state: {
           mealData,
           targetCalories,
           diet,
-          allergen: { value: selectedAllergens.join(",") },
+          allergen: { value: selectedAllergens.join(",") },   
         },
       });
+      } else if( route === "/signup") {
+       navigate("/signup", {
+        state: {
+          mealData,
+          targetCalories,
+          diet,
+          allergen: { value: selectedAllergens.join(",") },   
+        },
+      });
+
+
+
+    }
+      
     } catch (error) {
       console.error("Error fetching meal plan:", error);
     }
-  };
 
- 
+     
+    
+  };
 
   // Handle paste event
   const pasteChecks = (e) => {
@@ -418,19 +468,42 @@ const BmiCalculator = () => {
     }
   };
 
-  const goBackStep = () => {
-    setCurrentStep(1);
+  // Add this function to handle going back to previous step
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.history.pushState({ step: currentStep - 1 }, "");
+    }
   };
 
   return (
-    <div className="bmi-calculator-page">
+    <div style={{ backgroundColor: "#d9edda", minHeight: "100vh" }}>
       <NavBar />
       <div
         className="bmiCalculator-page-container"
-        style={{ display: "flex", flexDirection: "row" }}
+        style={{ 
+          display: "flex", 
+          flexDirection: "row",
+          backgroundColor: "white" // Explicitly setting the container background to white
+        }}
       >
         <div className="container">
-          <h1>EatsEasy</h1>
+          <div style={{ textAlign: "center" }}>
+            <h1
+              style={{
+                display: "inline-block",
+                backgroundColor: "#2f855a",
+                fontSize: "4rem",
+                fontWeight: "bold",
+                color: "white",
+                marginBottom: "20px",
+                padding: "20px", // optional: adjust padding to create space around the text
+                borderRadius: "10px",
+              }}
+            >
+              EatsEasy
+            </h1>
+          </div>
 
           <Typography sx={{ color: "gray", mb: 2, textAlign: "center" }}>
             We'll personalise your meal plan based on you and your preferences
@@ -439,14 +512,14 @@ const BmiCalculator = () => {
           <Box sx={{ width: "100%", maxWidth: "700px", mb: 5 }}>
             <Typography
               variant="body1"
-              sx={{ textAlign: "left", fontWeight: "bold" }}
+              sx={{ textAlign: "left", fontWeight: "bold", color: "Black" }}
               id="progress-text"
             >
-              Step {currentStep} of 2
+              Step {currentStep} of {totalStep}
             </Typography>
             <BorderLinearProgress
               variant="determinate"
-              value={currentStep === 1 ? 50 : 100}
+              value={(currentStep / totalStep) * 100}
               aria-labelledby="progress-text"
             />
           </Box>
@@ -491,7 +564,7 @@ const BmiCalculator = () => {
               <div className="bmiCalculator-input-group">
                 <label data-testid="age-input">
                   <FloatingLabelInput
-                    id= "enterAge"
+                    id="enterAge"
                     label="Enter your age"
                     type="number"
                     value={age}
@@ -500,7 +573,6 @@ const BmiCalculator = () => {
                     required
                     min="0"
                     error={error}
-                    
                   />
                 </label>
               </div>
@@ -508,7 +580,7 @@ const BmiCalculator = () => {
               {/* Weight Input */}
               <div className="bmiCalculator-input-group">
                 <WeightInput
-                  //disabled={isCalculated}   
+                  //disabled={isCalculated}
                   label="Enter Weight"
                   value={weight}
                   onWeightChange={(val) => setWeight(val)}
@@ -563,7 +635,7 @@ const BmiCalculator = () => {
                       label: "Very Active: intense exercise 6-7 times a week",
                     },
                   ]}
-                  
+
                   //disabled={isCalculated}
                 />
               </div>
@@ -573,16 +645,18 @@ const BmiCalculator = () => {
                 variant="contained"
                 fullWidth
                 sx={{
-                  backgroundColor: "#38a169",
+                  backgroundColor: "#13290C",
                   color: "#fff",
                   fontSize: "1.2rem",
                   fontWeight: "bold",
-                  borderRadius: "30px",
+                  borderRadius: "15px",
                   padding: "12px 0",
                   "&:hover": {
                     backgroundColor: "FFFFFF",
                   },
+                  textTransform: "none",
                 }}
+                endIcon={<span style={{ color: "white" }}>&#8594;</span>}
                 aria-label="Proceed to the next step"
               >
                 Next
@@ -602,23 +676,48 @@ const BmiCalculator = () => {
               {
                 <div>
                   <div>
-                    <h2 className="text-black md:mb-3 mb-1 font-bold text-2xl">
+                    <h2 className=" text-center text-black md:mb-3 mb-1 font-bold text-2xl">
                       Select Diet Preferences
                     </h2>
 
                     <div className="bmiCalculator-input-group">
-                      <div data-testid="dropdown-diet" className="md:mb-11 mb-10">
-                        <FormControl sx={{ width: '100%' }}>
-                          <InputLabel id="diet-preferences-label">Diet Preferences</InputLabel>
+                      <div
+                        data-testid="dropdown-diet"
+                        className="md:mb-11 mb-10"
+                      >
+                        <FormControl sx={{ width: "100%" }}>
+                          <InputLabel id="diet-preferences-label">
+                            Diet Preferences
+                          </InputLabel>
                           <Select
                             labelId="diet-preferences-label"
                             id="diet-preferences"
                             multiple
                             value={diet}
                             onChange={(e) => setDietOptions(e.target.value)}
-                            input={<OutlinedInput label="Diet Preferences" />}
+                            input={
+                              <OutlinedInput
+                                label="Diet Preferences"
+                                sx={{
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#A9A9A9", // default border color
+                                    borderWidth: "2px", // border thickness set to 2px
+                                  },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#1976d2", // border color on hover
+                                    borderWidth: "3px",
+                                  },
+                                }}
+                              />
+                            }
                             renderValue={(selected) => (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 0.5,
+                                }}
+                              >
                                 {selected.map((value) => (
                                   <Chip key={value} label={value} />
                                 ))}
@@ -648,130 +747,199 @@ const BmiCalculator = () => {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: "#38a169",
-                      color: "#fff",
-                      fontSize: "1.2rem",
-                      fontWeight: "bold",
-                      borderRadius: "30px",
-                      padding: "12px 0",
-                      mt: 5,
-                      "&:hover": {
-                        backgroundColor: "FFFFFF",
-                      },
-                    }}
-                    aria-label="Proceed to the next step"
-                  >
-                    Calculate
-                  </Button>
+                  <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={goToPreviousStep}
+                      sx={{
+                        borderColor: "#13290C",
+                        color: "#13290C",
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        borderRadius: "15px",
+                        padding: "12px 0",
+                        flex: 1,
+                        "&:hover": {
+                          backgroundColor: "#f5f5f5",
+                          borderColor: "#13290C",
+                        },
+                        textTransform: "none",
+                      }}
+                      startIcon={<span>&#8592;</span>}
+                      aria-label="Go back to the previous step"
+                    >
+                      Back
+                    </Button>
 
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#13290C",
+                        color: "#fff",
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        borderRadius: "15px",
+                        padding: "12px 0",
+                        flex: 1,
+                        "&:hover": {
+                          backgroundColor: "FFFFFF",
+                        },
+                        textTransform: "none",
+                      }}
+                      endIcon={<span style={{ color: "white" }}>&#8594;</span>}
+                      aria-label="Proceed to the next step"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              }
+            </form>
+          )}
+          {currentStep === 3 && (
+            <form
+              data-testid="form3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!isValid) {
+                  setCurrentStep(4);
+                  window.history.pushState({ step: 4 }, "");
+                } else {
+                  calculateCalorieCount("weightGoal" , "/mealplan");
+                }
+              }}
+            >
+              <div>
+                <div>
+                  <h2 className="text-center text-black md:mb-3 mb-1 font-bold text-2xl">
+                    Select Your Weight Goal
+                  </h2>
+                  <WeightGoal
+                    setIsInfoVisible={setIsInfoVisible}
+                    bmi={bmi}
+                    status={status}
+                    isInfoVisible={isInfoVisible}
+                    weightGoal={weightGoal}
+                    setWeightGoal={setWeightGoal}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
                   <Button
-                    type="submit"
-                    onClick={goBackStep}
-                    variant="contained"
-                    fullWidth
+                    type="button"
+                    variant="outlined"
+                    onClick={goToPreviousStep}
                     sx={{
-                      backgroundColor: "#38a169",
-                      color: "#fff",
+                      borderColor: "#13290C",
+                      color: "#13290C",
                       fontSize: "1.2rem",
                       fontWeight: "bold",
-                      borderRadius: "30px",
+                      borderRadius: "15px",
                       padding: "12px 0",
-                      mt: 5,
+                      flex: 1,
                       "&:hover": {
-                        backgroundColor: "FFFFFF",
+                        backgroundColor: "#f5f5f5",
+                        borderColor: "#13290C",
                       },
+                      textTransform: "none",
                     }}
-                    aria-label="Proceed to the next step"
+                    startIcon={<span>&#8592;</span>}
+                    aria-label="Go back to the previous step"
                   >
                     Back
                   </Button>
 
-                  {/* <button onClick={resetForm} style={{ marginTop: "20px" }}>
-                    Reset{" "}
-                  </button> */}
-                </div>
-                }
-            </form>
-          )}
-          
-
-          {showGoalPopup && (
-            <div
-              className="bmiCalculator-popup-overlay"
-              onClick={() => setShowGoalPopup(false)} // forces user to click by setting it true
-            >
-              <div
-                className="bmiCalculator-popup-content"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-white">Select Your Weight Goal</h2>
-
-                <button
-                  onClick={() => setIsInfoVisible(!isInfoVisible)}
-                  className="toggle-button"
-                >
-                  {isInfoVisible
-                    ? "Hide BMI and Status ▲"
-                    : "View BMI and Status ▼"}
-                </button>
-
-                {isInfoVisible && (
-                  <div className="bmiCalculator-bmi-details">
-                    <p>
-                      <strong>BMI:</strong> {bmi}
-                    </p>
-                    <p>
-                      <strong>Status:</strong> {status}
-                    </p>
-                  </div>
-                )}
-
-                <p className="bmiCalculator-bmi-recommendation">
-                  Based on your BMI, we recommend you to{" "}
-                  <strong>{weightGoal}</strong> weight.
-                </p>
-                <div className="bmiCalculator-goal-buttons">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("lose");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("lose");
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{
+                      backgroundColor: "#13290C",
+                      color: "#fff",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "15px",
+                      padding: "12px 0",
+                      flex: 1,
+                      "&:hover": {
+                        backgroundColor: "FFFFFF",
+                      },
+                      textTransform: "none",
                     }}
-                    className={weightGoal === "lose" ? "highlighted" : ""}
+                    // endIcon={<span style={{ color: "white" }}>&#8594;</span>}
+                    aria-label="Generate meal plan"
                   >
-                    Lose Weight
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("maintain");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("maintain");
-                    }}
-                    className={weightGoal === "maintain" ? "highlighted" : ""}
-                  >
-                    Maintain Weight
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeightGoal("gain");
-                      setShowGoalPopup(false);
-                      calculateCalorieCount("gain"); // passed value
-                    }}
-                    className={weightGoal === "gain" ? "highlighted" : ""}
-                  >
-                    Gain Weight
-                  </button>
+                    Generate Meal
+                  </Button>
                 </div>
               </div>
-            </div>
+            </form>
+          )}
+          {currentStep === 4 && !isValid && (
+            <form
+              data-testid="form3"
+            >
+              <div>
+                <div>
+                  <h2 className=" text-black md:mb-3 mb-1 font-bold text-2xl">
+                    Sign up
+                  </h2>
+                </div>
+
+                <div class="flex ">
+                  
+                    <Button
+                      type="button"
+                      variant="contained"
+                      fullWidth
+                      onClick={() => calculateCalorieCount("weightGoal", "/mealplan")}
+                      sx={{
+                        backgroundColor: "#FFFFFF",
+                        color: "#000000",
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        borderRadius: "10px",
+                        border: "5px solid #000000",
+                        padding: "12px 0",
+                        mt: 5,
+                       
+                        "&:hover": {
+                          backgroundColor: "FFFFFF",
+                        },
+                      }}
+                      aria-label="sign up as guest user"
+                    >
+                      Guest user
+                    </Button>
+                  <div class="mx-4  border-r-4 border-black "></div>
+                  <Button
+                    type="button"
+                    variant="contained"
+                    fullWidth
+                    onClick={() => calculateCalorieCount("weightGoal", "/signup")}
+
+                    sx={{
+                      backgroundColor: "#FFFFFF",
+                      color: "#000000",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      borderRadius: "10px",
+                      border: "5px solid #000000",
+                      padding: "12px 0",
+                      mt: 5,
+
+                      "&:hover": {
+                        backgroundColor: "FFFFFF",
+                      },
+                    }}
+                    aria-label="sign up to a member of eateasy to unlock addtional features"
+                  >
+                    Sign up
+                  </Button>
+                </div>
+              </div>
+            </form>
           )}
         </div>
       </div>
