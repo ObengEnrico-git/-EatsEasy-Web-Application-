@@ -50,8 +50,17 @@ const AiInsight = () => {
       }
     };
 
-    fetchInsights();
-  }, []);
+    // Add a flag to prevent double fetching
+    let isMounted = true;
+    if (isMounted) {
+      fetchInsights();
+    }
+    
+    // Cleanup function to prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Make sure the dependency array remains empty
 
   const icons = [
     <TipsAndUpdatesIcon color="primary" fontSize="medium" />,

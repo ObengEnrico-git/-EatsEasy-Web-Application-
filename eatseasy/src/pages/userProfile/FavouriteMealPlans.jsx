@@ -19,6 +19,7 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
   });
 
   const handleDeleteClick = (e, plan) => {
+    e.preventDefault(); // Prevent any default behavior
     e.stopPropagation(); // Prevent card click event
     setPlanToDelete(plan);
     setDeleteDialogOpen(true);
@@ -148,7 +149,12 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                 className="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                 onMouseEnter={() => onHover?.(plan.planId)}
                 onMouseLeave={() => onHover?.(null)}
-                onClick={() => handleViewWeeklyPlan(plan)}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget || e.target.classList.contains('MuiCardContent-root') || 
+                      e.target.tagName === 'DIV' || e.target.tagName === 'P') {
+                    handleViewWeeklyPlan(plan);
+                  }
+                }}
                 sx={{ cursor: 'pointer', position: 'relative' }}
               >
                 {isLatest && (
@@ -165,19 +171,33 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                   />
                 )}
                 <IconButton
-                  onClick={(e) => handleDeleteClick(e, plan)}
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent any default behavior
+                    e.stopPropagation(); // Prevent card click event
+                    console.log('Delete button clicked for plan:', plan.planId); // Debug log
+                    setPlanToDelete(plan);
+                    setDeleteDialogOpen(true);
+                  }}
                   sx={{
                     position: 'absolute',
                     top: 8,
                     right: isLatest ? 80 : 8,
-                    zIndex: 2,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    zIndex: 1000, // Increased z-index even more
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: '32px',
+                    height: '32px',
+                    padding: '4px', // Increase clickable area
+                    color: '#d32f2f',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                      transform: 'scale(1.2)',
+                      backgroundColor: 'rgba(255, 240, 240, 0.95)',
                     }
                   }}
                 >
-                  <CloseIcon sx={{ color: '#d32f2f' }} />
+                  <CloseIcon sx={{ 
+                    color: '#d32f2f',
+                    fontSize: '20px',  // Make the icon slightly larger
+                  }} />
                 </IconButton>
                 <CardContent className="relative">
                   <div className="flex items-center gap-2 mb-4">
@@ -206,7 +226,10 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                     <Chip 
                       label="View Plan" 
                       className="bg-[#2d6a4f] text-white"
-                      onClick={() => handleViewWeeklyPlan(plan)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the card click
+                        handleViewWeeklyPlan(plan);
+                      }}
                     />
                     <IconButton
                       className={`transform transition-transform ${hoveredCard === plan.planId ? "translate-x-2" : ""}`}
@@ -280,7 +303,12 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
               className="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
               onMouseEnter={() => onHover?.(plan.planId)}
               onMouseLeave={() => onHover?.(null)}
-              onClick={() => handleViewWeeklyPlan(plan)}
+              onClick={(e) => {
+                if (e.target === e.currentTarget || e.target.classList.contains('MuiCardContent-root') || 
+                    e.target.tagName === 'DIV' || e.target.tagName === 'P') {
+                  handleViewWeeklyPlan(plan);
+                }
+              }}
               sx={{ cursor: 'pointer', position: 'relative' }}
             >
               {isLatest && (
@@ -297,19 +325,33 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                 />
               )}
               <IconButton
-                onClick={(e) => handleDeleteClick(e, plan)}
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent any default behavior
+                  e.stopPropagation(); // Prevent card click event
+                  console.log('Delete button clicked for plan:', plan.planId); // Debug log
+                  setPlanToDelete(plan);
+                  setDeleteDialogOpen(true);
+                }}
                 sx={{
                   position: 'absolute',
                   top: 8,
                   right: isLatest ? 80 : 8,
-                  zIndex: 2,
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  zIndex: 1000, // Increased z-index even more
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  width: '32px',
+                  height: '32px',
+                  padding: '4px', // Increase clickable area
+                  color: '#d32f2f',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                    transform: 'scale(1.2)',
+                    backgroundColor: 'rgba(255, 240, 240, 0.95)',
                   }
                 }}
               >
-                <CloseIcon sx={{ color: '#d32f2f' }} />
+                <CloseIcon sx={{ 
+                  color: '#d32f2f',
+                  fontSize: '20px',  // Make the icon slightly larger
+                }} />
               </IconButton>
               <CardContent className="relative">
                 <div className="flex items-center gap-2 mb-4">
@@ -338,7 +380,10 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                   <Chip 
                     label="View Plan" 
                     className="bg-[#2d6a4f] text-white"
-                    onClick={() => handleViewWeeklyPlan(plan)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the card click
+                      handleViewWeeklyPlan(plan);
+                    }}
                   />
                   <IconButton
                     className={`transform transition-transform ${hoveredCard === plan.planId ? "translate-x-2" : ""}`}
