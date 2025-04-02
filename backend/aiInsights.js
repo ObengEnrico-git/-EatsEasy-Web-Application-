@@ -82,6 +82,23 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.user_id;
         
+        // Check if there's a recent insight (e.g., within the last hour)
+        const recentInsightQuery = `
+            SELECT insights_data 
+            FROM ai_insights 
+            WHERE user_id = $1 
+            AND created_at > NOW() - INTERVAL '1 hour'
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+        const recentResult = await db.query(recentInsightQuery, [userId]);
+        
+        // If a recent insight exists, return it instead of generating a new one
+        if (recentResult.rows.length > 0) {
+            return res.status(200).json(recentResult.rows[0].insights_data);
+        }
+        
+        // Otherwise, continue with generating new insights
         // 1. Get user's latest BMI data
         const bmiQuery = `
             SELECT 
@@ -139,7 +156,7 @@ router.get('/personal-insights', authenticateToken, async (req, res) => {
         });
         
         // 4. Generate AI insights using Gemini
-        const prompt = `Analyse this user's profile and provide 3-5 personalised insights about their diet, nutrition needs, and recipe recommendations. Please respond in British English.
+        const prompt = `Analyse this user's profile and provide 3-5 personalised insights about their diet, nutrition needs, and recipe recommendations. Please try not to be too rude or negative, but also don't be too positive. Please respond in British English.
                     
         User data:
         - BMI: ${bmiData?.bmi || 'Not provided'} (${bmiData?.bmi_status || 'Unknown'})
@@ -217,7 +234,7 @@ router.get('/recipe-analysis/:recipeId', authenticateToken, async (req, res) => 
         const recipe = recipeResult.rows[0];
         
         // Generate AI insights about the recipe using Gemini
-        const prompt = `Analyse this recipe and provide nutritional insights, please respond in British English:
+        const prompt = `Analyse this recipe and provide nutritional insights, Please try not to be too rude or negative, but also don't be too positive. Please respond in British English:
                     
         Recipe: ${recipe.title}
         Preparation time: ${recipe.prep_time} minutes
@@ -317,7 +334,7 @@ router.get('/meal-plan-recommendations', authenticateToken, async (req, res) => 
             `${day}:\n${mealPlanByDay[day].map(meal => `- ${meal.title}`).join('\n')}`
         ).join('\n\n');
         
-        const prompt = `Analyse this meal plan and provide optimisation recommendations based on the user's profile, please respond in British English:
+        const prompt = `Analyse this meal plan and provide optimisation recommendations based on the user's profile, Please try not to be too rude or negative, and be positive also please respond in British English:
                     
         User profile:
         - BMI status: ${bmiData?.bmi_status || 'Not provided'}

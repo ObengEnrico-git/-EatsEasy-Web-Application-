@@ -12,6 +12,8 @@ const Signup = lazy(() => import('./pages/userAuthentication/Signup'));
 const UserProfile = lazy(() => import('./pages/userProfile/UserProfile'));
 const Loader = lazy(() => import('./pages/Loader')); //loading screen in between pages
 const SavedMealPlan = lazy(() => import('./pages/userProfile/SavedMealPlan'));
+const AllMealPlans = lazy(() => import('./pages/userProfile/AllMealPlans'));
+const BmiHistory = lazy(() => import('./pages/userProfile/AllBmiHistory'));
 
 //axios
 axios.defaults.withCredentials = true;
@@ -30,6 +32,8 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/userprofile" element={<UserProfile />} />
             <Route path="/saved-mealplan" element={<SavedMealPlan />} />
+            <Route path="/allMealPlans" element={<AllMealPlans />} />
+            <Route path="/bmiHistory" element={<BmiHistory />} />
           </Routes>
         </Suspense>
       </div>

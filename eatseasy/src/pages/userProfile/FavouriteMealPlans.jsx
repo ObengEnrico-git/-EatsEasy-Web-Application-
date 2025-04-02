@@ -19,6 +19,7 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
   });
 
   const handleDeleteClick = (e, plan) => {
+    e.preventDefault(); // Prevent any default behavior
     e.stopPropagation(); // Prevent card click event
     setPlanToDelete(plan);
     setDeleteDialogOpen(true);
@@ -103,6 +104,164 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
     });
   };
 
+  if(sortedPlans.length > 3) {
+    // Display only the 3 latest meal plans
+    const latestPlans = sortedPlans.slice(0, 3);
+    
+    return (
+      <Box mb={12}>
+        <Typography variant="h4" className="mb-8 text-[#1b4332] font-bold">
+          Saved Favourite Meal Plans
+        </Typography>
+        <br></br>
+        <Box 
+          display="grid" 
+          gridTemplateColumns={{
+            xs: '1fr',
+            sm: '1fr 1fr',
+            md: '1fr 1fr 1fr'
+          }}
+          gap={4}
+        >
+          {latestPlans.map((plan, index) => {
+            console.log('Processing plan:', plan);
+
+            if (!plan || !plan.recipes) {
+              console.log('Invalid plan, skipping:', plan);
+              return null;
+            }
+
+            // Calculate total recipes across all days
+            const totalRecipes = Object.values(plan.recipes)
+              .flat()
+              .length;
+            
+            console.log('Total recipes for plan:', totalRecipes);
+            
+            if (totalRecipes === 0) return null;
+
+            const date = new Date(plan.createdAt);
+            const isLatest = index === 0; // First plan in sorted array is the latest
+
+            return (
+              <Card
+                key={plan.planId}
+                className="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                onMouseEnter={() => onHover?.(plan.planId)}
+                onMouseLeave={() => onHover?.(null)}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget || e.target.classList.contains('MuiCardContent-root') || 
+                      e.target.tagName === 'DIV' || e.target.tagName === 'P') {
+                    handleViewWeeklyPlan(plan);
+                  }
+                }}
+                sx={{ cursor: 'pointer', position: 'relative' }}
+              >
+                {isLatest && (
+                  <Chip
+                    label="Latest"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      backgroundColor: '#1f9b48',
+                      color: 'white',
+                      zIndex: 1
+                    }}
+                  />
+                )}
+                <IconButton
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent any default behavior
+                    e.stopPropagation(); // Prevent card click event
+                    console.log('Delete button clicked for plan:', plan.planId); // Debug log
+                    setPlanToDelete(plan);
+                    setDeleteDialogOpen(true);
+                  }}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: isLatest ? 80 : 8,
+                    zIndex: 1000, // Increased z-index even more
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    width: '32px',
+                    height: '32px',
+                    padding: '4px', // Increase clickable area
+                    color: '#d32f2f',
+                    '&:hover': {
+                      transform: 'scale(1.2)',
+                      backgroundColor: 'rgba(255, 240, 240, 0.95)',
+                    }
+                  }}
+                >
+                  <CloseIcon sx={{ 
+                    color: '#d32f2f',
+                    fontSize: '20px',  // Make the icon slightly larger
+                  }} />
+                </IconButton>
+                <CardContent className="relative">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CalendarMonth className="text-[#2d6a4f]" fontSize="large" />
+                    <Typography variant="h6" className="font-bold">
+                      Weekly Meal Plan
+                    </Typography>
+                  </div>
+                  
+                  <Typography variant="body1" className="mb-4 text-gray-600">
+                    Saved on: {date.toLocaleDateString('en-UK', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </Typography>
+
+                  <Typography variant="body2" color="text.secondary" className="mb-4">
+                    {totalRecipes} {totalRecipes === 1 ? 'recipe' : 'recipes'} saved
+                  </Typography>
+
+                  <div className="flex items-center justify-between mt-4">
+                    <Chip 
+                      label="View Plan" 
+                      className="bg-[#2d6a4f] text-white"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the card click
+                        handleViewWeeklyPlan(plan);
+                      }}
+                    />
+                    <IconButton
+                      className={`transform transition-transform ${hoveredCard === plan.planId ? "translate-x-2" : ""}`}
+                    >
+                      <ArrowForward className="text-[#2d6a4f]" />
+                    </IconButton>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </Box>
+        
+        <Box mt={4} display="flex" justifyContent="center">
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => navigate('/allMealPlans', { state: { allPlans: sortedPlans } })}
+            sx={{ 
+              backgroundColor: '#2d6a4f',
+              '&:hover': {
+                backgroundColor: '#1b4332',
+              }
+            }}
+          >
+            View All Meal Plans ({sortedPlans.length})
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box mb={12}>
       <Typography variant="h4" className="mb-8 text-[#1b4332] font-bold">
@@ -144,7 +303,12 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
               className="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
               onMouseEnter={() => onHover?.(plan.planId)}
               onMouseLeave={() => onHover?.(null)}
-              onClick={() => handleViewWeeklyPlan(plan)}
+              onClick={(e) => {
+                if (e.target === e.currentTarget || e.target.classList.contains('MuiCardContent-root') || 
+                    e.target.tagName === 'DIV' || e.target.tagName === 'P') {
+                  handleViewWeeklyPlan(plan);
+                }
+              }}
               sx={{ cursor: 'pointer', position: 'relative' }}
             >
               {isLatest && (
@@ -161,19 +325,33 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                 />
               )}
               <IconButton
-                onClick={(e) => handleDeleteClick(e, plan)}
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent any default behavior
+                  e.stopPropagation(); // Prevent card click event
+                  console.log('Delete button clicked for plan:', plan.planId); // Debug log
+                  setPlanToDelete(plan);
+                  setDeleteDialogOpen(true);
+                }}
                 sx={{
                   position: 'absolute',
                   top: 8,
                   right: isLatest ? 80 : 8,
-                  zIndex: 2,
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  zIndex: 1000, // Increased z-index even more
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  width: '32px',
+                  height: '32px',
+                  padding: '4px', // Increase clickable area
+                  color: '#d32f2f',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                    transform: 'scale(1.2)',
+                    backgroundColor: 'rgba(255, 240, 240, 0.95)',
                   }
                 }}
               >
-                <CloseIcon sx={{ color: '#d32f2f' }} />
+                <CloseIcon sx={{ 
+                  color: '#d32f2f',
+                  fontSize: '20px',  // Make the icon slightly larger
+                }} />
               </IconButton>
               <CardContent className="relative">
                 <div className="flex items-center gap-2 mb-4">
@@ -202,7 +380,10 @@ const FavoriteMealPlans = ({ mealPlans = [], onHover, hoveredCard, onMealPlanCli
                   <Chip 
                     label="View Plan" 
                     className="bg-[#2d6a4f] text-white"
-                    onClick={() => handleViewWeeklyPlan(plan)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the card click
+                      handleViewWeeklyPlan(plan);
+                    }}
                   />
                   <IconButton
                     className={`transform transition-transform ${hoveredCard === plan.planId ? "translate-x-2" : ""}`}
